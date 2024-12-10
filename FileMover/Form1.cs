@@ -182,12 +182,16 @@ namespace FileMoverApp
 
                 int totFilesCount = 0;
 
+                bool shouldBreak = false;
+
                 if (totPath > 0)
                 {
                     if (pathsSource.Length > 0)
                     {
                         foreach (string pathSource in pathsSource)
                         {
+                            if (shouldBreak) break;
+
                             if (totPath < 0)
                             {
                                 break;
@@ -203,17 +207,7 @@ namespace FileMoverApp
                             {
                                 foreach (string pathFile in pathFileSourceOrdenado)
                                 {
-                                    totFilesCount++;
-
-                                    if (totPath < 0)
-                                    {
-                                        break;
-                                    }
-
-                                    if (totFilesToProcess > 0 && totFilesCount > totFilesToProcess)
-                                    {
-                                        break;
-                                    }
+                                    if (shouldBreak) break;
 
                                     string[] pathFilePart = pathFile.Split('\\');
 
@@ -234,6 +228,8 @@ namespace FileMoverApp
                                         {
                                             for (int i = 0; i < pathFilePart.Length; i++)
                                             {
+                                                if (shouldBreak) break;
+
                                                 if (totPath < 0)
                                                 {
                                                     break;
@@ -358,6 +354,19 @@ namespace FileMoverApp
                                                         row.DefaultCellStyle.BackColor = achou
                                                             ? Color.Green
                                                             : Color.Tomato;
+
+                                                        totFilesCount++;
+
+                                                        if (totFilesToProcess > 0 && totFilesCount >= totFilesToProcess)
+                                                        {
+                                                            shouldBreak = true;
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    if (totPath < 0)
+                                                    {
+                                                        break;
                                                     }
 
                                                     break;
