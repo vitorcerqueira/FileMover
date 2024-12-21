@@ -141,16 +141,30 @@ namespace FileMoverApp
 
         private void btnMoveFiles_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtSourceFolder.Text) || string.IsNullOrEmpty(txtDestinationFolder.Text))
+            try
             {
-                MessageBox.Show("Please select both source and destination folders.");
-                return;
+                if (string.IsNullOrEmpty(txtSourceFolder.Text) || string.IsNullOrEmpty(txtDestinationFolder.Text))
+                {
+                    MessageBox.Show("Please select both source and destination folders.");
+                    return;
+                }
+
+                var thread = new Thread(CopyFiles);
+                thread.Start();
             }
-
-            var thread = new Thread(CopyFiles);
-            thread.Start();
+            catch (UnauthorizedAccessException ex)
+            {
+               MessageBox.Show($"Erro de permissão: {ex.Message}");
+            }
+            catch (IOException ex)
+            {
+               MessageBox.Show($"Erro de entrada/saída: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+               MessageBox.Show($"Erro inesperado: {ex.Message}");
+            }
         }
-
         private void LoadGrid()
         {
             Invoke(new Action(() =>
@@ -408,88 +422,104 @@ namespace FileMoverApp
 
         private void CopyFiles()
         {
-            DriveInfo drive = new DriveInfo(Path.GetPathRoot(Path.GetPathRoot(txtDestinationFolder.Text)));
-
-            double availableFreeSpace = drive.AvailableFreeSpace / (1024.0 * 1024.0);
-
-            if (availableFreeSpace >= requiredSpaceInMB)
+            try
             {
-                Invoke(new Action(() =>
+                DriveInfo drive = new DriveInfo(Path.GetPathRoot(Path.GetPathRoot(txtDestinationFolder.Text)));
+
+                double availableFreeSpace = drive.AvailableFreeSpace / (1024.0 * 1024.0);
+
+                if (availableFreeSpace >= requiredSpaceInMB)
                 {
-                    progressBar.Maximum = dataGridView.Rows.Count;
-                    progressBar.Value = 0;
-
-                    Boolean achou = false;
-
-                    var writer = new StreamWriter(@$"c:\temp\Relatorio_FileMover_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.txt");
-
-                    string auxPath = "";
-
-                    foreach (DataGridViewRow row in dataGridView.Rows)
+                    Invoke(new Action(() =>
                     {
-                        string sourceFile = row.Cells[0].Value.ToString();
-                        string destFile = row.Cells[1].Value.ToString();
+                        progressBar.Maximum = dataGridView.Rows.Count;
+                        progressBar.Value = 0;
 
-                        if (!File.Exists(destFile))
+                        Boolean achou = false;
+
+                        var writer = new StreamWriter(@$"c:\temp\Relatorio_FileMover_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.txt");
+
+                        string auxPath = "";
+
+                        foreach (DataGridViewRow row in dataGridView.Rows)
                         {
-                            try
+                            string sourceFile = row.Cells[0].Value.ToString();
+                            string destFile = row.Cells[1].Value.ToString();
+
+                            if (!File.Exists(destFile))
                             {
-                                string destinationDir = Path.GetDirectoryName(destFile);
-
-                                if (!Directory.Exists(destinationDir))
+                                try
                                 {
-                                    Directory.CreateDirectory(destinationDir);
+                                    string destinationDir = Path.GetDirectoryName(destFile);
+
+                                    if (!Directory.Exists(destinationDir))
+                                    {
+                                        Directory.CreateDirectory(destinationDir);
+                                    }
+
+                                    File.Copy(sourceFile, destFile, true);
+
+                                    string path = GetPathUntil2(sourceFile, "sub");
+
+                                    if (auxPath != path)
+                                    {
+                                        auxPath = path;
+
+                                        writer.WriteLine(path);
+                                    }
+
+                                    string km = GetPathUntil(sourceFile, "km");
+
+                                    writer.WriteLine(km.PadLeft(5));
+
+                                    achou = true;
+
+                                    //Thread.Sleep(1000);
                                 }
-
-                                File.Copy(sourceFile, destFile, true);
-
-                                string path = GetPathUntil2(sourceFile, "sub");
-
-                                if (auxPath != path)
+                                catch (Exception ex)
                                 {
-                                    auxPath = path;
-
-                                    writer.WriteLine(path);
+                                    MessageBox.Show($"Error copy file {sourceFile}: {ex.Message}", "Atenção",
+                                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 }
-
-                                string km = GetPathUntil(sourceFile, "km");
-
-                                writer.WriteLine(km.PadLeft(5));
-
-                                achou = true;
-
-                                //Thread.Sleep(1000);
                             }
-                            catch (Exception ex)
-                            {
-                                MessageBox.Show($"Error copy file {sourceFile}: {ex.Message}", "Atenção",
-                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
+
+                            //progressBar.Value++;
+
+                            progressBar.Invoke(new Action(() => progressBar.Value++));
                         }
 
-                        //progressBar.Value++;
+                        if (achou)
+                        {
+                            writer.Close();
 
-                        progressBar.Invoke(new Action(() => progressBar.Value++));
-                    }
+                            MessageBox.Show("Arquivos movidos com sucesso!", "Atenção", MessageBoxButtons.OK,
+                                MessageBoxIcon.Exclamation);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Não foi encontrado arquivos para copiar!", "Atenção", MessageBoxButtons.OK,
+                                MessageBoxIcon.Exclamation);
+                        }
+                    }));
+                }
+                else
+                {
+                    MessageBox.Show("Não há espaço suficiente disponível em " + drive.Name + " \n \n Requerido: " + requiredSpaceInMB.ToString("F2") + " MB \n \n Livre : " + availableFreeSpace.ToString("F2") + " MB", "Atenção", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
 
-                    if (achou)
-                    {
-                        writer.Close();
-
-                        MessageBox.Show("Arquivos movidos com sucesso!", "Atenção", MessageBoxButtons.OK,
-                            MessageBoxIcon.Exclamation);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Não foi encontrado arquivos para copiar!", "Atenção", MessageBoxButtons.OK,
-                            MessageBoxIcon.Exclamation);
-                    }
-                }));
             }
-            else
+            catch (UnauthorizedAccessException ex)
             {
-                MessageBox.Show("Não há espaço suficiente disponível em " + drive.Name + " \n \n Requerido: " + requiredSpaceInMB.ToString("F2") + " MB \n \n Livre : " + availableFreeSpace.ToString("F2") + " MB", "Atenção", MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+               MessageBox.Show($"Erro de permissão: {ex.Message}");
+            }
+            catch (IOException ex)
+            {
+               MessageBox.Show($"Erro de entrada/saída: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+               MessageBox.Show($"Erro inesperado: {ex.Message}");
             }
         }
         private bool IsFileHidden(string filePath)
@@ -502,7 +532,7 @@ namespace FileMoverApp
         {
             string[] list = path.Split("\\");
 
-            for (int i = 0; i < list.Length; i++) 
+            for (int i = 0; i < list.Length; i++)
             {
                 if (list[i].ToUpper().StartsWith(find.ToUpper()))
                 {
