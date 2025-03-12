@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -238,6 +239,7 @@ namespace FileMoverApp
 
                             return ret;
                         })
+                        .OrderBy(arquivo => arquivo, StringComparer.OrdinalIgnoreCase) // Ordena pelo caminho completo
                         .ToArray()
                     );
 
@@ -254,105 +256,108 @@ namespace FileMoverApp
         {
             //Invoke(new Action(() =>
             //{
-                requiredSpaceInMB = 0;
-                dataGridView.Rows.Clear();
+            requiredSpaceInMB = 0;
+            dataGridView.Rows.Clear();
 
-                int totLimitPath = int.TryParse(txtLimitPath.Text, out int temp1) ? temp1 : 0;
-                int totLimitFile = int.TryParse(txtLimitFile.Text, out int temp2) ? temp2 : 0;
-                int totFilesCount = 0;
+            int totLimitPath = int.TryParse(txtLimitPath.Text, out int temp1) ? temp1 : 0;
+            int totLimitFile = int.TryParse(txtLimitFile.Text, out int temp2) ? temp2 : 0;
+            int totFilesCount = 0;
 
-                bool shouldBreak = false;
-                string subAux = "";
+            bool shouldBreak = false;
+            string subAux = "";
 
-                int posPathSource = txtSourceFolder.Text.Split('\\').Length;
+            int posPathSource = txtSourceFolder.Text.Split('\\').Length;
 
-                progressBar.Maximum = 0; //pathFiles.Length;
-                progressBar.Value = 0;
+            progressBar.Maximum = 0; //pathFiles.Length;
+            progressBar.Value = 0;
 
-                string[] pathFiles = GetArquivosOrigem(txtSourceFolder.Text);
+            string[] pathFiles = GetArquivosOrigem(txtSourceFolder.Text);
 
-                if (pathFiles.Length == 0) return;
+            if (pathFiles.Length == 0) return;
 
-                progressBar.Maximum = totLimitFile; //pathFiles.Length;
+            progressBar.Maximum = totLimitFile; //pathFiles.Length;
 
-                //foreach (string pathSource in pathsSource)
-                //{
-                //    if (shouldBreak || totPath <= 0) break;
+            //foreach (string pathSource in pathsSource)
+            //{
+            //    if (shouldBreak || totPath <= 0) break;
 
-                //    var pathFileSourceOrdenado = Directory.GetFiles(pathSource, "*.*", SearchOption.AllDirectories)
-                //                                          .OrderBy(c => string.Join("\\", c.Split('\\').Skip(1)))
-                //                                          .ToList();
+            //    var pathFileSourceOrdenado = Directory.GetFiles(pathSource, "*.*", SearchOption.AllDirectories)
+            //                                          .OrderBy(c => string.Join("\\", c.Split('\\').Skip(1)))
+            //                                          .ToList();
 
-                foreach (string pathFile in pathFiles)
+            foreach (string pathFile in pathFiles)
+            {
+                if (totLimitFile <= 0) break;
+
+                string[] pathFilePart = pathFile.Split('\\');
+
+                string fileName = pathFilePart[^1];
+
+                (string sub, string km, string ano, string disciplina, string modalidade, string nomePastaFoto) = ProcessPathParts(pathFilePart, posPathSource);
+
+                bool temSub = !string.IsNullOrEmpty(sub);
+                bool temKm = !string.IsNullOrEmpty(km);
+                bool temAno = !string.IsNullOrEmpty(ano);
+                bool temDisciplina = !string.IsNullOrEmpty(disciplina);
+                bool temmodalidade = !string.IsNullOrEmpty(modalidade);
+                bool temnomePastaFoto = !string.IsNullOrEmpty(nomePastaFoto);
+
+                string pathDisciplinaDestino = getPathDisciplinaDestino(disciplina);
+
+                string fileNameDestination = Path.Combine(txtDestinationFolder.Text, pathDisciplinaDestino, sub, km, modalidade, ano, nomePastaFoto, fileName);
+
+                bool achou = File.Exists(fileNameDestination);
+
+                if (temSub && temKm && temAno && temDisciplina)
                 {
-                    if (totLimitFile < 0) break;
+                    double tamanhoMB = new FileInfo(pathFile).Length;
+                    string tamanhoFileSource = getTamanhoFile(tamanhoMB);
 
-                    string[] pathFilePart = pathFile.Split('\\');
-
-                    string fileName = pathFilePart[^1];
-
-                    (string sub, string km, string ano, string disciplina, string modalidade) = ProcessPathParts(pathFilePart, posPathSource);
-
-                    bool temSub = !string.IsNullOrEmpty(sub);
-                    bool temKm = !string.IsNullOrEmpty(km);
-                    bool temAno = !string.IsNullOrEmpty(ano);
-                    bool temDisciplina = !string.IsNullOrEmpty(disciplina);
-                    bool temmodalidade = !string.IsNullOrEmpty(modalidade);
-
-                    string pathDisciplinaDestino = getPathDisciplinaDestino(disciplina);
-
-                    string fileNameDestination = Path.Combine(txtDestinationFolder.Text, pathDisciplinaDestino, sub, km, modalidade, ano, fileName);
-
-                    bool achou = File.Exists(fileNameDestination);
-
-                    if (temSub && temKm && temAno && temDisciplina)
+                    if (temSub & validaSubMalhaSul(sub) && sub == "Sub 01")
                     {
-                        double tamanhoMB = new FileInfo(pathFile).Length;
-                        string tamanhoFileSource = getTamanhoFile(tamanhoMB);
-
-                        if (temSub & validaSubMalhaSul(sub) && sub == "Sub 01")
+                        if (((radioAll.Checked) || (!achou && radioPending.Checked) || (achou && radioCopied.Checked)) && ano.Contains(txtYear.Text))
                         {
-                            if ((radioAll.Checked) || (!achou && radioPending.Checked) || (achou && radioCopied.Checked) && ano.Contains(txtYear.Text))
-                            {
-                                totLimitFile--;
+                            totLimitFile--;
 
-                                //if (sub != subAux)
-                                //{
-                                //    subAux = sub;
-                                //    totLimitPath--;
-                                //}
+                            //if (sub != subAux)
+                            //{
+                            //    subAux = sub;
+                            //    totLimitPath--;
+                            //}
 
-                                requiredSpaceInMB += tamanhoMB;
+                            requiredSpaceInMB += tamanhoMB;
 
-                                AddRowToGrid(pathFile, fileNameDestination, tamanhoFileSource, achou, false);
+                            AddRowToGrid(pathFile, fileNameDestination, tamanhoFileSource, achou, false);
 
-                                //totFilesCount++;
+                            //totFilesCount++;
 
-                                //if (totLimitFile > 0 && totFilesCount >= totLimitFile)
-                                //{
-                                //    shouldBreak = true;
-                                //    break;
-                                //}
+                            //if (totLimitFile > 0 && totFilesCount >= totLimitFile)
+                            //{
+                            //    shouldBreak = true;
+                            //    break;
+                            //}
 
-                                progressBar.Invoke(new Action(() => progressBar.Value++));
-                            }
+                            //progressBar.Invoke(new Action(() => progressBar.Value++));
+
+                            progressBar.Value++;
                         }
                     }
-                    else if (!radioPending.Checked && !radioCopied.Checked)
-                    {
-                        totLimitFile--;
+                }
+                else if (!radioPending.Checked && !radioCopied.Checked)
+                {
+                    totLimitFile--;
 
-                        //if ((!temSub || !temKm || !temAno || !temDisciplina) && (!achou && !radioPending.Checked) && (!radioCopied.Checked) && (!radioAll.Checked))
-                        //{
+                    //if ((!temSub || !temKm || !temAno || !temDisciplina) && (!achou && !radioPending.Checked) && (!radioCopied.Checked) && (!radioAll.Checked))
+                    //{
 
-                        AddRowToGrid(pathFile, "", "", achou, true);
+                    AddRowToGrid(pathFile, "", "", achou, true);
 
-                        //progressBar.Invoke(new Action(() => progressBar.Value++));
-                    }
+                    //progressBar.Invoke(new Action(() => progressBar.Value++));
 
                     progressBar.Value++;
                 }
-                //}
+            }
+            //}
             //}));
         }
 
@@ -458,15 +463,39 @@ namespace FileMoverApp
             return "";
         }
 
-        private (string sub, string km, string ano, string disciplina, string modalidade) ProcessPathParts(string[] pathFilePart, int posPathSource)
+        private (string sub, string km, string ano, string disciplina, string modalidade, string nomePastaFoto) ProcessPathParts(string[] pathFilePart, int posPathSource)
         {
             string sub = ExtractSub(pathFilePart, posPathSource);
             string km = ExtractKm(pathFilePart, posPathSource);
             string disciplina = ExtractDisciplina(pathFilePart, posPathSource);
             string ano = ExtractYear(pathFilePart, posPathSource);
             string modalidade = ExtractModalidade(pathFilePart, posPathSource);
+            string nomePastaFoto = ExtractNomePastaFoto(pathFilePart, posPathSource);
 
-            return (sub, km, ano, disciplina, modalidade);
+            return (sub, km, ano, disciplina, modalidade, nomePastaFoto);
+        }
+
+        private string ExtractNomePastaFoto(string[] pathFilePart, int posPathSource)
+        {
+            string[] formatos =
+            {
+                "yyyy-MM-dd", "yyyyMMdd", "dd-MM-yyyy", "dd.MM.yyyy", "dd_MM_yyyy"
+            };
+
+            foreach (var namePath in pathFilePart.Skip(posPathSource))
+            {
+                foreach (var formato in formatos)
+                {
+                    var match = Regex.Match(namePath, "(\\d{4}-\\d{2}-\\d{2})|(\\d{8})|(\\d{2}-\\d{2}-\\d{4})|(\\d{2}\\.\\d{2}\\.\\d{4})|(\\d{2}_\\d{2}_\\d{4})");
+
+                    if (match.Success && DateTime.TryParseExact(match.Value, formato, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime data))
+                    {
+                        return $"foto_{data:yyyy-MM-dd}";
+                    }
+                }
+            }
+
+            return "";
         }
 
         private string ExtractYear(string[] pathFilePart, int posPathSource)
