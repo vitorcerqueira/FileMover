@@ -49,7 +49,7 @@ namespace FileMover
             Directory.CreateDirectory(Path.GetDirectoryName(logFilePath)); // Garante que a pasta existe
             File.AppendAllText(logFilePath, $"{DateTime.Now}: {context}\n{ex.Message}\n{ex.StackTrace}\n\n");
 
-            MessageBox.Show("Ocorreu um erro. Detalhes foram gravados no log.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Ocorreu um erro. Detalhes foram gravados no log: " + logFilePath, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

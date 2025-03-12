@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace FileMoverApp
 {
@@ -19,7 +22,7 @@ namespace FileMoverApp
         {
             InitializeComponent();
             EnsureConfigFileExists();
-            LoadLastTextBoxValue();
+            LoadLastLimitPath();
         }
 
         private void EnsureConfigFileExists()
@@ -30,8 +33,10 @@ namespace FileMoverApp
                 {
                     XDocument config = new XDocument(
                         new XElement("Configuration",
-                            new XElement("LastTextBoxValue", ""),
                             new XElement("LastSourceValue", ""),
+                            new XElement("LastLimitPath", ""),
+                            new XElement("LastLimitFile", ""),
+                            new XElement("LastYear", ""),
                             new XElement("LastDestinationValue", "")
                         )
                     );
@@ -45,17 +50,17 @@ namespace FileMoverApp
             }
         }
 
-        private void LoadLastTextBoxValue()
+        private void LoadLastLimitPath()
         {
             try
             {
                 XDocument config = XDocument.Load(ConfigFilePath);
 
-                var valueElement1 = config.Root.Element("LastTextBoxValue");
+                var valueElement1 = config.Root.Element("LastLimitPath");
 
                 if (valueElement1 != null)
                 {
-                    textBox1.Text = valueElement1.Value;
+                    txtLimitPath.Text = valueElement1.Value;
                 }
 
                 var valueElement2 = config.Root.Element("LastSourceValue");
@@ -65,11 +70,25 @@ namespace FileMoverApp
                     txtSourceFolder.Text = valueElement2.Value;
                 }
 
-                var valueElement3 = config.Root.Element("LastDestinationValue");
+                var valueElement3 = config.Root.Element("LastLimitFile");
 
                 if (valueElement3 != null)
                 {
-                    txtDestinationFolder.Text = valueElement3.Value;
+                    txtLimitFile.Text = valueElement3.Value;
+                }
+
+                var valueElement4 = config.Root.Element("LastYear");
+
+                if (valueElement4 != null)
+                {
+                    txtYear.Text = valueElement4.Value;
+                }
+
+                var valueElement5 = config.Root.Element("LastDestinationValue");
+
+                if (valueElement5 != null)
+                {
+                    txtDestinationFolder.Text = valueElement5.Value;
                 }
             }
             catch (Exception ex)
@@ -79,14 +98,16 @@ namespace FileMoverApp
             }
         }
 
-        private void SaveLastTextBoxValue()
+        private void SaveLastLimitPath()
         {
             try
             {
                 XDocument config = new XDocument(
                     new XElement("Configuration",
-                        new XElement("LastTextBoxValue", textBox1.Text),
+                        new XElement("LastLimitPath", txtLimitPath.Text),
                         new XElement("LastSourceValue", txtSourceFolder.Text),
+                        new XElement("LastLimitFile", txtLimitFile.Text),
+                        new XElement("LastYear", txtYear.Text),
                         new XElement("LastDestinationValue", txtDestinationFolder.Text)
                     )
                 );
@@ -101,7 +122,7 @@ namespace FileMoverApp
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            SaveLastTextBoxValue();
+            SaveLastLimitPath();
         }
 
         private void btnSelectSource_Click(object sender, EventArgs e)
@@ -135,8 +156,25 @@ namespace FileMoverApp
                 return;
             }
 
-            var thread = new Thread(LoadGrid);
-            thread.Start();
+            try
+            {
+                //var thread = new Thread(LoadGrid2);
+                //thread.Start();
+
+                LoadGrid2();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                MessageBox.Show($"Erro de permissão: {ex.Message}");
+            }
+            catch (IOException ex)
+            {
+                MessageBox.Show($"Erro de entrada/saída: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro inesperado: {ex.Message}");
+            }
         }
 
         private void btnMoveFiles_Click(object sender, EventArgs e)
@@ -154,270 +192,374 @@ namespace FileMoverApp
             }
             catch (UnauthorizedAccessException ex)
             {
-               MessageBox.Show($"Erro de permissão: {ex.Message}");
+                MessageBox.Show($"Erro de permissão: {ex.Message}");
             }
             catch (IOException ex)
             {
-               MessageBox.Show($"Erro de entrada/saída: {ex.Message}");
+                MessageBox.Show($"Erro de entrada/saída: {ex.Message}");
             }
             catch (Exception ex)
             {
-               MessageBox.Show($"Erro inesperado: {ex.Message}");
+                MessageBox.Show($"Erro inesperado: {ex.Message}");
             }
         }
-        private void LoadGrid()
+
+        static string[] GetArquivosOrigem(string caminho)
         {
-            Invoke(new Action(() =>
+            string[] resultado = Array.Empty<string>();
+
+            // Cria e exibe uma tela de carregamento
+            using (Form loadingForm = new Form())
             {
+                loadingForm.Text = "Aguarde...";
+                loadingForm.StartPosition = FormStartPosition.CenterScreen;
+                loadingForm.Size = new System.Drawing.Size(250, 100);
+                loadingForm.ControlBox = false;
+                loadingForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                loadingForm.TopMost = true;
+
+                Label label = new Label()
+                {
+                    Text = "Aguarde carregando arquivos...",
+                    AutoSize = true,
+                    Location = new System.Drawing.Point(35, 20)
+                };
+
+                loadingForm.Controls.Add(label);
+                loadingForm.Shown += async (sender, e) =>
+                {
+                    resultado = await Task.Run(() =>
+                        Directory.GetFiles(caminho, "*", SearchOption.AllDirectories)
+                        .Where(arquivo =>
+                        {
+                            FileAttributes atributos = File.GetAttributes(arquivo);
+
+                            bool ret = (atributos & FileAttributes.Hidden) == 0 && (atributos & FileAttributes.System) == 0;
+
+                            return ret;
+                        })
+                        .ToArray()
+                    );
+
+                    loadingForm.Close();
+                };
+
+                loadingForm.ShowDialog();
+            }
+
+            return resultado;
+        }
+
+        private void LoadGrid2()
+        {
+            //Invoke(new Action(() =>
+            //{
                 requiredSpaceInMB = 0;
-
-                //string[] files = Directory.GetFiles(txtSourceFolder.Text);
-
-                // ORIGEM : C:\Delvined\Inspeção de Pontes\Métrica\                                         -> 2023\Sub1\Km 219+300 pt
-                // DESTINO: C:\Rumo\Infraestrutura e OAEs - 10. ENGENHARIA\7-Cadastro e Gestão de Ativos\   -> Sub 01\Km 219+300 pt
-
-                //string[] files = Directory.GetFiles(@txtSourceFolder.Text)
-                //    .Where(file => !IsFileHidden(file))
-                //    .ToArray();
-
-                string[] pathsSource = Directory.GetDirectories(@txtSourceFolder.Text);
-
                 dataGridView.Rows.Clear();
 
-                Boolean achou = false;
-
-                Boolean achouPathOk = false;
-
-                string subAux = "";
-
-                int totPath = textBox1.Text.Where(char.IsDigit).Any() ? int.Parse(textBox1.Text) : 0;
-
-                int totFilesToProcess = textBox3.Text.Any() ? int.Parse(textBox3.Text) : 0;
-
+                int totLimitPath = int.TryParse(txtLimitPath.Text, out int temp1) ? temp1 : 0;
+                int totLimitFile = int.TryParse(txtLimitFile.Text, out int temp2) ? temp2 : 0;
                 int totFilesCount = 0;
 
                 bool shouldBreak = false;
+                string subAux = "";
 
-                if (totPath > 0)
+                int posPathSource = txtSourceFolder.Text.Split('\\').Length;
+
+                progressBar.Maximum = 0; //pathFiles.Length;
+                progressBar.Value = 0;
+
+                string[] pathFiles = GetArquivosOrigem(txtSourceFolder.Text);
+
+                if (pathFiles.Length == 0) return;
+
+                progressBar.Maximum = totLimitFile; //pathFiles.Length;
+
+                //foreach (string pathSource in pathsSource)
+                //{
+                //    if (shouldBreak || totPath <= 0) break;
+
+                //    var pathFileSourceOrdenado = Directory.GetFiles(pathSource, "*.*", SearchOption.AllDirectories)
+                //                                          .OrderBy(c => string.Join("\\", c.Split('\\').Skip(1)))
+                //                                          .ToList();
+
+                foreach (string pathFile in pathFiles)
                 {
-                    if (pathsSource.Length > 0)
+                    if (totLimitFile < 0) break;
+
+                    string[] pathFilePart = pathFile.Split('\\');
+
+                    string fileName = pathFilePart[^1];
+
+                    (string sub, string km, string ano, string disciplina, string modalidade) = ProcessPathParts(pathFilePart, posPathSource);
+
+                    bool temSub = !string.IsNullOrEmpty(sub);
+                    bool temKm = !string.IsNullOrEmpty(km);
+                    bool temAno = !string.IsNullOrEmpty(ano);
+                    bool temDisciplina = !string.IsNullOrEmpty(disciplina);
+                    bool temmodalidade = !string.IsNullOrEmpty(modalidade);
+
+                    string pathDisciplinaDestino = getPathDisciplinaDestino(disciplina);
+
+                    string fileNameDestination = Path.Combine(txtDestinationFolder.Text, pathDisciplinaDestino, sub, km, modalidade, ano, fileName);
+
+                    bool achou = File.Exists(fileNameDestination);
+
+                    if (temSub && temKm && temAno && temDisciplina)
                     {
-                        foreach (string pathSource in pathsSource)
+                        double tamanhoMB = new FileInfo(pathFile).Length;
+                        string tamanhoFileSource = getTamanhoFile(tamanhoMB);
+
+                        if (temSub & validaSubMalhaSul(sub) && sub == "Sub 01")
                         {
-                            if (shouldBreak) break;
-
-                            if (totPath < 0)
+                            if ((radioAll.Checked) || (!achou && radioPending.Checked) || (achou && radioCopied.Checked) && ano.Contains(txtYear.Text))
                             {
-                                break;
-                            }
+                                totLimitFile--;
 
-                            string[] pathFileSource =
-                                Directory.GetFiles(pathSource, "*.*", SearchOption.AllDirectories);
+                                //if (sub != subAux)
+                                //{
+                                //    subAux = sub;
+                                //    totLimitPath--;
+                                //}
 
-                            var pathFileSourceOrdenado = pathFileSource
-                            .OrderBy(c => string.Join("\\", c.Split('\\').Skip(1))).ToList(); // Pula o diretório raiz e ordena pelos subdiretórios
+                                requiredSpaceInMB += tamanhoMB;
 
-                            if (pathFileSourceOrdenado.Count > 0)
-                            {
-                                foreach (string pathFile in pathFileSourceOrdenado)
-                                {
-                                    if (shouldBreak) break;
+                                AddRowToGrid(pathFile, fileNameDestination, tamanhoFileSource, achou, false);
 
-                                    string[] pathFilePart = pathFile.Split('\\');
+                                //totFilesCount++;
 
-                                    int posPathSource = txtSourceFolder.Text.Split('\\').Length;
+                                //if (totLimitFile > 0 && totFilesCount >= totLimitFile)
+                                //{
+                                //    shouldBreak = true;
+                                //    break;
+                                //}
 
-                                    string ano = pathFilePart[posPathSource];
-                                    string sub = "";
-
-                                    string subInternal = "";
-                                    string km = "";
-
-                                    string fileName = pathFilePart[pathFilePart.Length - 1];
-
-                                    if (string.IsNullOrEmpty(textBox2.Text) || ano.Contains(textBox2.Text))
-                                    {
-                                        if (pathFilePart[posPathSource + 1].ToLower()
-                                            .StartsWith("sub", StringComparison.CurrentCultureIgnoreCase))
-                                        {
-                                            for (int i = 0; i < pathFilePart.Length; i++)
-                                            {
-                                                if (shouldBreak) break;
-
-                                                if (totPath < 0)
-                                                {
-                                                    break;
-
-                                                }
-
-                                                string namePath = pathFilePart[i];
-
-                                                Match match = Regex.Match(namePath, @"\b\d{4}\b");
-
-                                                if (match.Success)
-                                                {
-                                                    namePath = match.Value;
-                                                }
-
-                                                if (DateTime.TryParseExact(namePath, "yyyy", null,
-                                                    System.Globalization.DateTimeStyles.None, out DateTime _))
-                                                {
-                                                    achouPathOk = true;
-
-                                                    ano = namePath;
-
-                                                    int posSub = 0;
-
-                                                    for (int j = i + 1; j < pathFilePart.Length - 1; j++)
-                                                    {
-                                                        if (string.IsNullOrEmpty(sub) && pathFilePart[j].ToLower()
-                                                                .StartsWith("sub",
-                                                                    StringComparison.CurrentCultureIgnoreCase))
-                                                        {
-                                                            posSub = j;
-
-                                                            sub = pathFilePart[j];
-
-                                                            string numericPart =
-                                                                new string(sub.Where(char.IsDigit).ToArray());
-
-                                                            int number;
-
-                                                            if (int.TryParse(numericPart, out number))
-                                                            {
-                                                                string formattedSub = $"Sub {number:00}";
-
-                                                                sub = formattedSub;
-                                                            }
-                                                        }
-
-                                                        if (string.IsNullOrEmpty(km) && pathFilePart[j].ToLower()
-                                                                .StartsWith("km",
-                                                                    StringComparison.CurrentCultureIgnoreCase))
-                                                        {
-                                                            km = pathFilePart[j];
-
-                                                            break;
-                                                        }
-                                                    }
-
-                                                    subInternal = "";
-
-                                                    for (int j = posSub + 1; j < pathFilePart.Length - 1; j++)
-                                                    {
-                                                        if (!pathFilePart[j].StartsWith("km",
-                                                                StringComparison.CurrentCultureIgnoreCase) &&
-                                                            !pathFilePart[j].Contains(ano) &&
-                                                            !pathFilePart[j].Contains("Inspeções")
-                                                           )
-                                                        {
-                                                            subInternal += "\\" + pathFilePart[j];
-                                                        }
-                                                    }
-
-                                                    string subInternalAjuste = "\\" + ano + "\\Inspeções";
-
-                                                    if (string.IsNullOrEmpty(subInternal))
-                                                    {
-                                                        subInternal = subInternalAjuste;
-                                                    }
-                                                    else if (subInternal != subInternalAjuste)
-                                                    {
-                                                        subInternal = subInternalAjuste + subInternal;
-                                                    }
-
-                                                    string fileNameDestination =
-                                                        txtDestinationFolder.Text + "\\" + sub + "\\" +
-                                                        km + subInternal + "\\" +
-                                                        fileName;
-
-                                                    double tamanhoMB = new FileInfo(pathFile).Length /
-                                                                       (double)(1024 * 1024);
-
-                                                    //requiredSpaceInMB += tamanhoMB;
-
-                                                    string tamanhoFileSource = Math.Round(tamanhoMB, 2) + " MB";
-
-                                                    achou = File.Exists(fileNameDestination);
-
-                                                    if ((radioButton1.Checked) || (!achou && radioButton2.Checked) ||
-                                                        (achou && radioButton3.Checked))
-                                                    {
-                                                        if (sub != subAux)
-                                                        {
-                                                            subAux = sub;
-
-                                                            totPath--;
-                                                        }
-
-                                                        if (totPath < 0)
-                                                        {
-                                                            break;
-                                                        }
-
-                                                        requiredSpaceInMB += tamanhoMB;
-
-                                                        dataGridView.Rows.Add(pathFile,
-                                                            fileNameDestination,
-                                                            tamanhoFileSource);
-
-                                                        DataGridViewRow row =
-                                                            dataGridView.Rows[
-                                                                dataGridView.Rows.Count - 1];
-
-                                                        row.DefaultCellStyle.BackColor = achou
-                                                            ? Color.Green
-                                                            : Color.Tomato;
-
-                                                        totFilesCount++;
-
-                                                        if (totFilesToProcess > 0 && totFilesCount >= totFilesToProcess)
-                                                        {
-                                                            shouldBreak = true;
-                                                            break;
-                                                        }
-                                                    }
-
-                                                    if (totPath < 0)
-                                                    {
-                                                        break;
-                                                    }
-
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                //MessageBox.Show("Não encontrado subpasta em -> " + pathSource);
+                                progressBar.Invoke(new Action(() => progressBar.Value++));
                             }
                         }
                     }
-                    else
+                    else if (!radioPending.Checked && !radioCopied.Checked)
                     {
-                        //MessageBox.Show("Não encontrado subpasta em -> " + txtSourceFolder.Text);
+                        totLimitFile--;
+
+                        //if ((!temSub || !temKm || !temAno || !temDisciplina) && (!achou && !radioPending.Checked) && (!radioCopied.Checked) && (!radioAll.Checked))
+                        //{
+
+                        AddRowToGrid(pathFile, "", "", achou, true);
+
+                        //progressBar.Invoke(new Action(() => progressBar.Value++));
                     }
 
-                    //if (achouPathOk && !achou)
-                    //{
-                    //    MessageBox.Show("Não foi encontrado arquivos!", "Atenção", MessageBoxButtons.OK,
-                    //        MessageBoxIcon.Exclamation);
-                    //}
-                    //else if (!achouPathOk)
-                    //{
-                    //    MessageBox.Show("Não foi encontrado pastas com a escrutura -> .../ano/sub[n]/km", "Atenção",
-                    //        MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                    //}
+                    progressBar.Value++;
                 }
-                else
+                //}
+            //}));
+        }
+
+        private bool validaSubMalhaSul(string valor)
+        {
+            HashSet<string> valoresPermitidos = new HashSet<string>();
+
+            valoresPermitidos.Add("Sub 01");
+            valoresPermitidos.Add("Sub 02");
+            valoresPermitidos.Add("Sub 03");
+            valoresPermitidos.Add("Sub 04");
+            valoresPermitidos.Add("Sub 05");
+            valoresPermitidos.Add("Sub 06");
+            valoresPermitidos.Add("Sub 07");
+            valoresPermitidos.Add("Sub 08");
+            valoresPermitidos.Add("Sub 09");
+            valoresPermitidos.Add("Sub 10");
+            valoresPermitidos.Add("Sub 11");
+            valoresPermitidos.Add("Sub 12");
+            valoresPermitidos.Add("Sub 13");
+            valoresPermitidos.Add("Sub 14");
+            valoresPermitidos.Add("Sub 15");
+            valoresPermitidos.Add("Sub 16");
+            valoresPermitidos.Add("Sub 17");
+            valoresPermitidos.Add("Sub 18");
+            valoresPermitidos.Add("Sub 19");
+            valoresPermitidos.Add("Sub 20");
+            valoresPermitidos.Add("Sub 21");
+            valoresPermitidos.Add("Sub 22");
+            valoresPermitidos.Add("Sub 23");
+            valoresPermitidos.Add("Sub 24");
+            valoresPermitidos.Add("Sub 25");
+            valoresPermitidos.Add("Sub 26");
+            valoresPermitidos.Add("Sub 27");
+            valoresPermitidos.Add("Sub 28");
+            valoresPermitidos.Add("Sub 29");
+            valoresPermitidos.Add("Sub 30");
+            valoresPermitidos.Add("Sub 31");
+            valoresPermitidos.Add("Sub 32");
+            valoresPermitidos.Add("Sub 33");
+            valoresPermitidos.Add("Sub 34");
+            valoresPermitidos.Add("Sub 35");
+            valoresPermitidos.Add("Sub 36");
+            valoresPermitidos.Add("Sub 37");
+            valoresPermitidos.Add("Sub 38");
+            valoresPermitidos.Add("Sub 39");
+            valoresPermitidos.Add("Sub 40");
+            valoresPermitidos.Add("Sub 41");
+            valoresPermitidos.Add("Sub 45");
+
+            return valoresPermitidos.Contains(valor);
+        }
+
+        private string getTamanhoFile(double tamanhoMB = 0)
+        {
+            string tamanhoFileSource = $"{Math.Round(tamanhoMB / (1024.0 * 1024.0), 2)} MB";
+
+            return (tamanhoFileSource);
+        }
+
+        private string getPathDisciplinaDestino(string disciplina)
+        {
+            /*
+                01. Pontes = PT 
+                02. Infraestrutura = AT = ATERRO / SM = SEÇAO MISTA / CT = CORTE / BU = BUEIRO / CO = CONTENÇAO 
+                03. PNs = PN
+                04. Túneis = TU  
+            */
+
+            if (disciplina.ToUpper().Equals("PT"))
+            {
+                return "01. Pontes";
+            }
+            else if (disciplina.ToUpper().Equals("AT"))
+            {
+                return "02. Infraestrutura";
+            }
+            else if (disciplina.ToUpper().Equals("SM"))
+            {
+                return "02. Infraestrutura";
+            }
+            else if (disciplina.ToUpper().Equals("CT"))
+            {
+                return "02. Infraestrutura";
+            }
+            else if (disciplina.ToUpper().Equals("BU"))
+            {
+                return "02. Infraestrutura";
+            }
+            else if (disciplina.ToUpper().Equals("CO"))
+            {
+                return "02. Infraestrutura";
+            }
+            else if (disciplina.ToUpper().Equals("PN"))
+            {
+                return "03. PNs";
+            }
+            else if (disciplina.ToUpper().Equals("TU"))
+            {
+                return "04. Túneis";
+            }
+
+            return "";
+        }
+
+        private (string sub, string km, string ano, string disciplina, string modalidade) ProcessPathParts(string[] pathFilePart, int posPathSource)
+        {
+            string sub = ExtractSub(pathFilePart, posPathSource);
+            string km = ExtractKm(pathFilePart, posPathSource);
+            string disciplina = ExtractDisciplina(pathFilePart, posPathSource);
+            string ano = ExtractYear(pathFilePart, posPathSource);
+            string modalidade = ExtractModalidade(pathFilePart, posPathSource);
+
+            return (sub, km, ano, disciplina, modalidade);
+        }
+
+        private string ExtractYear(string[] pathFilePart, int posPathSource)
+        {
+            foreach (var namePath in pathFilePart.Skip(posPathSource))
+            {
+                string regexDot = @"(19|20)\d{2}";
+
+                if (Regex.IsMatch(namePath, regexDot))
                 {
-                    MessageBox.Show("Preencha o limite de pastas para processamento!", "Atenção", MessageBoxButtons.OK,
-                        MessageBoxIcon.Exclamation);
+                    return Regex.Match(namePath, regexDot).Value;
                 }
-            }));
+            }
+
+            return "";
+        }
+
+        private string ExtractSub(string[] pathFilePart, int posPathSource)
+        {
+            foreach (var namePath in pathFilePart.Skip(posPathSource))
+            {
+                if (namePath.StartsWith("sub", StringComparison.CurrentCultureIgnoreCase) && !namePath.Contains("km", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    string numericPart = new string(namePath.Where(char.IsDigit).ToArray());
+                    return int.TryParse(numericPart, out int number) ? $"Sub {number:00}" : namePath;
+                }
+            }
+            return "";
+        }
+
+        private string ExtractKm(string[] pathFilePart, int posPathSource)
+        {
+            foreach (var namePath in pathFilePart.Skip(posPathSource))
+            {
+                if (namePath.StartsWith("km", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    //string[] namePathList = namePath.Split(' ');
+
+                    //if (namePathList.Length > 0)
+                    //{
+                    //    return namePathList[0] + " " + (namePathList.Length > 1 ? namePathList[1] : "");
+                    //}
+
+                    return namePath;
+                }
+            }
+
+            return "";
+        }
+
+        private string ExtractDisciplina(string[] pathFilePart, int posPathSource)
+        {
+            foreach (var namePath in pathFilePart.Skip(posPathSource))
+            {
+                if (namePath.StartsWith("km", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    string[] namePathList = namePath.Split(' ');
+
+                    return namePathList.Length == 3 ? namePathList[^1] : "";
+                }
+            }
+
+            return "";
+        }
+
+        private string ExtractModalidade(string[] pathFilePart, int posPathSource)
+        {
+            for (int i = posPathSource; i < pathFilePart.Length - 1; i++)
+            {
+                string namePathFile = pathFilePart[i];
+
+                // primeira tentativa
+                if (!namePathFile.StartsWith("sub", StringComparison.CurrentCultureIgnoreCase) && !namePathFile.StartsWith("km", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (namePathFile.StartsWith("Inspeção", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return "01. Inspeções";
+                    }
+
+                    if (namePathFile.StartsWith("Sinalização", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return "02. Sinalização";
+                    }
+                }
+            };
+
+            return "01. Inspeções"; // default
+        }
+
+        private void AddRowToGrid(string pathFile, string fileNameDestination, string tamanhoFileSource, bool achou, bool ignorar)
+        {
+            int rowIndex = dataGridView.Rows.Add(pathFile, fileNameDestination, tamanhoFileSource);
+            dataGridView.Rows[rowIndex].DefaultCellStyle.BackColor = ignorar ? Color.Orange : achou ? Color.Green : Color.Tomato;
         }
 
         private void CopyFiles()
@@ -511,21 +653,16 @@ namespace FileMoverApp
             }
             catch (UnauthorizedAccessException ex)
             {
-               MessageBox.Show($"Erro de permissão: {ex.Message}");
+                MessageBox.Show($"Erro de permissão: {ex.Message}");
             }
             catch (IOException ex)
             {
-               MessageBox.Show($"Erro de entrada/saída: {ex.Message}");
+                MessageBox.Show($"Erro de entrada/saída: {ex.Message}");
             }
             catch (Exception ex)
             {
-               MessageBox.Show($"Erro inesperado: {ex.Message}");
+                MessageBox.Show($"Erro inesperado: {ex.Message}");
             }
-        }
-        private bool IsFileHidden(string filePath)
-        {
-            FileAttributes attributes = File.GetAttributes(filePath);
-            return (attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
         }
 
         static string GetPathUntil(string path, string find)
@@ -568,6 +705,11 @@ namespace FileMoverApp
 
             //txtDestinationFolder.Text = "C:\\Rumo\\Infraestrutura e OAEs - 10. ENGENHARIA\\7-Cadastro e Gestão de Ativos";
             //txtSourceFolder.Text = "C:\\Delvined\\Inspeção de Pontes\\Métrica";
+        }
+
+        private void radioCopied_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
