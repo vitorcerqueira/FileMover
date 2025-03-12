@@ -159,10 +159,10 @@ namespace FileMoverApp
 
             try
             {
-                //var thread = new Thread(LoadGrid2);
-                //thread.Start();
+                var thread = new Thread(LoadGrid2);
+                thread.Start();
 
-                LoadGrid2();
+                //LoadGrid2();
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -254,111 +254,95 @@ namespace FileMoverApp
 
         private void LoadGrid2()
         {
-            //Invoke(new Action(() =>
-            //{
-            requiredSpaceInMB = 0;
-            dataGridView.Rows.Clear();
-
-            int totLimitPath = int.TryParse(txtLimitPath.Text, out int temp1) ? temp1 : 0;
-            int totLimitFile = int.TryParse(txtLimitFile.Text, out int temp2) ? temp2 : 0;
-            int totFilesCount = 0;
-
-            bool shouldBreak = false;
-            string subAux = "";
-
-            int posPathSource = txtSourceFolder.Text.Split('\\').Length;
-
-            progressBar.Maximum = 0; //pathFiles.Length;
-            progressBar.Value = 0;
-
-            string[] pathFiles = GetArquivosOrigem(txtSourceFolder.Text);
-
-            if (pathFiles.Length == 0) return;
-
-            progressBar.Maximum = totLimitFile; //pathFiles.Length;
-
-            //foreach (string pathSource in pathsSource)
-            //{
-            //    if (shouldBreak || totPath <= 0) break;
-
-            //    var pathFileSourceOrdenado = Directory.GetFiles(pathSource, "*.*", SearchOption.AllDirectories)
-            //                                          .OrderBy(c => string.Join("\\", c.Split('\\').Skip(1)))
-            //                                          .ToList();
-
-            foreach (string pathFile in pathFiles)
+            Invoke(new Action(() =>
             {
-                if (totLimitFile <= 0) break;
+                requiredSpaceInMB = 0;
+                dataGridView.Rows.Clear();
 
-                string[] pathFilePart = pathFile.Split('\\');
+                int totLimitPath = int.TryParse(txtLimitPath.Text, out int temp1) ? temp1 : 0;
+                int totLimitFile = int.TryParse(txtLimitFile.Text, out int temp2) ? temp2 : 0;
+                int linha = 0;
 
-                string fileName = pathFilePart[^1];
+                string subAux = "";
 
-                (string sub, string km, string ano, string disciplina, string modalidade, string nomePastaFoto) = ProcessPathParts(pathFilePart, posPathSource);
+                int posPathSource = txtSourceFolder.Text.Split('\\').Length;
 
-                bool temSub = !string.IsNullOrEmpty(sub);
-                bool temKm = !string.IsNullOrEmpty(km);
-                bool temAno = !string.IsNullOrEmpty(ano);
-                bool temDisciplina = !string.IsNullOrEmpty(disciplina);
-                bool temmodalidade = !string.IsNullOrEmpty(modalidade);
-                bool temnomePastaFoto = !string.IsNullOrEmpty(nomePastaFoto);
+                progressBar.Maximum = 0; //pathFiles.Length;
+                progressBar.Value = 0;
 
-                string pathDisciplinaDestino = getPathDisciplinaDestino(disciplina);
+                string[] pathFiles = GetArquivosOrigem(txtSourceFolder.Text);
 
-                string fileNameDestination = Path.Combine(txtDestinationFolder.Text, pathDisciplinaDestino, sub, km, modalidade, ano, nomePastaFoto, fileName);
+                if (pathFiles.Length == 0) return;
 
-                bool achou = File.Exists(fileNameDestination);
+                progressBar.Maximum = totLimitFile; //pathFiles.Length;
 
-                if (temSub && temKm && temAno && temDisciplina)
+                foreach (string pathFile in pathFiles)
                 {
-                    double tamanhoMB = new FileInfo(pathFile).Length;
-                    string tamanhoFileSource = getTamanhoFile(tamanhoMB);
+                    if (totLimitFile == 0) break;
 
-                    if (temSub & validaSubMalhaSul(sub) && sub == "Sub 01")
+                    string[] pathFilePart = pathFile.Split('\\');
+
+                    string fileName = pathFilePart[^1];
+
+                    (string sub, string km, string ano, string disciplina, string modalidade, string nomePastaFoto) = ProcessPathParts(pathFilePart, posPathSource);
+
+                    bool temSub = !string.IsNullOrEmpty(sub);
+                    bool temKm = !string.IsNullOrEmpty(km);
+                    bool temAno = !string.IsNullOrEmpty(ano);
+                    bool temDisciplina = !string.IsNullOrEmpty(disciplina);
+                    bool temmodalidade = !string.IsNullOrEmpty(modalidade);
+                    bool temnomePastaFoto = !string.IsNullOrEmpty(nomePastaFoto);
+
+                    string pathDisciplinaDestino = getPathDisciplinaDestino(disciplina);
+
+                    string fileNameDestination = Path.Combine(txtDestinationFolder.Text, pathDisciplinaDestino, sub, km, modalidade, ano, nomePastaFoto, fileName);
+
+                    bool achou = File.Exists(fileNameDestination);
+
+                    if (temSub && temKm && temAno && temDisciplina)
                     {
-                        if (((radioAll.Checked) || (!achou && radioPending.Checked) || (achou && radioCopied.Checked)) && ano.Contains(txtYear.Text))
+                        double tamanhoMB = new FileInfo(pathFile).Length;
+                        string tamanhoFileSource = getTamanhoFile(tamanhoMB);
+
+                        if (temSub & validaSubMalhaSul(sub)) // && sub == "Sub 01"
                         {
-                            totLimitFile--;
+                            if (((radioAll.Checked) || (!achou && radioPending.Checked) || (achou && radioCopied.Checked)) && ano.Contains(txtYear.Text))
+                            {
+                                totLimitFile--;
 
-                            //if (sub != subAux)
-                            //{
-                            //    subAux = sub;
-                            //    totLimitPath--;
-                            //}
+                                if (sub != subAux)
+                                {
+                                    subAux = sub;
 
-                            requiredSpaceInMB += tamanhoMB;
+                                    totLimitPath--;
 
-                            AddRowToGrid(pathFile, fileNameDestination, tamanhoFileSource, achou, false);
+                                    if (totLimitPath < 0) break;
+                                }
 
-                            //totFilesCount++;
+                                requiredSpaceInMB += tamanhoMB / (1024.0 * 1024.0);
 
-                            //if (totLimitFile > 0 && totFilesCount >= totLimitFile)
-                            //{
-                            //    shouldBreak = true;
-                            //    break;
-                            //}
+                                linha++;
+                                AddRowToGrid(linha, pathFile, fileNameDestination, tamanhoFileSource, achou, false);
 
-                            //progressBar.Invoke(new Action(() => progressBar.Value++));
+                                progressBar.Invoke(new Action(() => progressBar.Value++));
 
-                            progressBar.Value++;
+                                //progressBar.Value++;
+                            }
                         }
                     }
+                    else if (!radioPending.Checked && !radioCopied.Checked)
+                    {
+                        totLimitFile--;
+
+                        linha++;
+                        AddRowToGrid(linha, pathFile, "", "", achou, true);
+
+                        progressBar.Invoke(new Action(() => progressBar.Value++));
+
+                        //progressBar.Value++;
+                    }
                 }
-                else if (!radioPending.Checked && !radioCopied.Checked)
-                {
-                    totLimitFile--;
-
-                    //if ((!temSub || !temKm || !temAno || !temDisciplina) && (!achou && !radioPending.Checked) && (!radioCopied.Checked) && (!radioAll.Checked))
-                    //{
-
-                    AddRowToGrid(pathFile, "", "", achou, true);
-
-                    //progressBar.Invoke(new Action(() => progressBar.Value++));
-
-                    progressBar.Value++;
-                }
-            }
-            //}
-            //}));
+            }));
         }
 
         private bool validaSubMalhaSul(string valor)
@@ -585,9 +569,28 @@ namespace FileMoverApp
             return "01. Inspeções"; // default
         }
 
-        private void AddRowToGrid(string pathFile, string fileNameDestination, string tamanhoFileSource, bool achou, bool ignorar)
+        private void AddRowToGrid(int linha, string pathFile, string fileNameDestination, string tamanhoFileSource, bool achou, bool ignorar)
         {
-            int rowIndex = dataGridView.Rows.Add(pathFile, fileNameDestination, tamanhoFileSource);
+            //// Suspendendo o layout para otimizar a adição de várias linhas
+            //dataGridView.SuspendLayout();
+
+            //// Adiciona uma nova linha sem precisar atribuir valores ainda
+            //int rowIndex = dataGridView.Rows.Add();
+
+            //// Definindo os valores das células de uma vez
+            //dataGridView.Rows[rowIndex].Cells[0].Value = rowIndex + 1; // Número da linha
+            //dataGridView.Rows[rowIndex].Cells[1].Value = pathFile; // Segunda coluna
+            //dataGridView.Rows[rowIndex].Cells[2].Value = fileNameDestination; // Terceira coluna
+            //dataGridView.Rows[rowIndex].Cells[3].Value = tamanhoFileSource; // Quarta coluna
+
+            //// Definindo a cor da linha com base nas condições
+            //dataGridView.Rows[rowIndex].DefaultCellStyle.BackColor = ignorar ? Color.Orange : achou ? Color.Green : Color.Tomato;
+
+            //// Retomando o layout para renderizar tudo de uma vez
+            //dataGridView.ResumeLayout();
+
+            int rowIndex = dataGridView.Rows.Add(linha, pathFile, fileNameDestination, tamanhoFileSource);
+
             dataGridView.Rows[rowIndex].DefaultCellStyle.BackColor = ignorar ? Color.Orange : achou ? Color.Green : Color.Tomato;
         }
 
@@ -614,8 +617,8 @@ namespace FileMoverApp
 
                         foreach (DataGridViewRow row in dataGridView.Rows)
                         {
-                            string sourceFile = row.Cells[0].Value.ToString();
-                            string destFile = row.Cells[1].Value.ToString();
+                            string sourceFile = row.Cells[1].Value.ToString();
+                            string destFile = row.Cells[2].Value.ToString();
 
                             if (!File.Exists(destFile))
                             {

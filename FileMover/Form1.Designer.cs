@@ -28,9 +28,6 @@
             txtSourceFolder = new System.Windows.Forms.TextBox();
             txtDestinationFolder = new System.Windows.Forms.TextBox();
             dataGridView = new System.Windows.Forms.DataGridView();
-            Origem = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            Destino = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            Size = new System.Windows.Forms.DataGridViewTextBoxColumn();
             btnLoadGrid = new System.Windows.Forms.Button();
             btnMoveFiles = new System.Windows.Forms.Button();
             progressBar = new System.Windows.Forms.ProgressBar();
@@ -38,15 +35,19 @@
             label1 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
             groupBox1 = new System.Windows.Forms.GroupBox();
+            label5 = new System.Windows.Forms.Label();
+            label4 = new System.Windows.Forms.Label();
+            label3 = new System.Windows.Forms.Label();
             radioIngnored = new System.Windows.Forms.RadioButton();
             txtLimitFile = new System.Windows.Forms.TextBox();
             txtYear = new System.Windows.Forms.TextBox();
             radioCopied = new System.Windows.Forms.RadioButton();
             radioAll = new System.Windows.Forms.RadioButton();
             radioPending = new System.Windows.Forms.RadioButton();
-            label3 = new System.Windows.Forms.Label();
-            label4 = new System.Windows.Forms.Label();
-            label5 = new System.Windows.Forms.Label();
+            Ordem = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            Origem = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            Destino = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            Size = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)dataGridView).BeginInit();
             groupBox1.SuspendLayout();
             SuspendLayout();
@@ -96,34 +97,12 @@
             dataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             dataGridView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { Origem, Destino, Size });
+            dataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { Ordem, Origem, Destino, Size });
             dataGridView.Location = new System.Drawing.Point(12, 100);
             dataGridView.Name = "dataGridView";
             dataGridView.RowHeadersWidth = 62;
             dataGridView.Size = new System.Drawing.Size(1553, 461);
             dataGridView.TabIndex = 4;
-            // 
-            // Origem
-            // 
-            Origem.Frozen = true;
-            Origem.HeaderText = "Source";
-            Origem.MinimumWidth = 8;
-            Origem.Name = "Origem";
-            Origem.Width = 68;
-            // 
-            // Destino
-            // 
-            Destino.HeaderText = "Destination";
-            Destino.MinimumWidth = 8;
-            Destino.Name = "Destino";
-            Destino.Width = 92;
-            // 
-            // Size
-            // 
-            Size.HeaderText = "Size";
-            Size.MinimumWidth = 8;
-            Size.Name = "Size";
-            Size.Width = 52;
             // 
             // btnLoadGrid
             // 
@@ -200,6 +179,33 @@
             groupBox1.TabStop = false;
             groupBox1.Text = "Filtros";
             // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new System.Drawing.Point(306, 10);
+            label5.Name = "label5";
+            label5.Size = new System.Drawing.Size(92, 15);
+            label5.TabIndex = 20;
+            label5.Text = "Limite de pastas";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new System.Drawing.Point(136, 14);
+            label4.Name = "label4";
+            label4.Size = new System.Drawing.Size(104, 15);
+            label4.TabIndex = 19;
+            label4.Text = "Limite de arquivos";
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new System.Drawing.Point(6, 14);
+            label3.Name = "label3";
+            label3.Size = new System.Drawing.Size(71, 15);
+            label3.TabIndex = 14;
+            label3.Text = "Digite o ano";
+            // 
             // radioIngnored
             // 
             radioIngnored.AutoSize = true;
@@ -257,32 +263,33 @@
             radioPending.Text = "Pendentes";
             radioPending.UseVisualStyleBackColor = true;
             // 
-            // label3
+            // Ordem
             // 
-            label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(6, 14);
-            label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(71, 15);
-            label3.TabIndex = 14;
-            label3.Text = "Digite o ano";
+            Ordem.HeaderText = "Ordem";
+            Ordem.Name = "Ordem";
+            Ordem.ReadOnly = true;
+            Ordem.Width = 69;
             // 
-            // label4
+            // Origem
             // 
-            label4.AutoSize = true;
-            label4.Location = new System.Drawing.Point(136, 14);
-            label4.Name = "label4";
-            label4.Size = new System.Drawing.Size(104, 15);
-            label4.TabIndex = 19;
-            label4.Text = "Limite de arquivos";
+            Origem.HeaderText = "Source";
+            Origem.MinimumWidth = 8;
+            Origem.Name = "Origem";
+            Origem.Width = 68;
             // 
-            // label5
+            // Destino
             // 
-            label5.AutoSize = true;
-            label5.Location = new System.Drawing.Point(306, 10);
-            label5.Name = "label5";
-            label5.Size = new System.Drawing.Size(92, 15);
-            label5.TabIndex = 20;
-            label5.Text = "Limite de pastas";
+            Destino.HeaderText = "Destination";
+            Destino.MinimumWidth = 8;
+            Destino.Name = "Destino";
+            Destino.Width = 92;
+            // 
+            // Size
+            // 
+            Size.HeaderText = "Size";
+            Size.MinimumWidth = 8;
+            Size.Name = "Size";
+            Size.Width = 52;
             // 
             // Form1
             // 
@@ -311,9 +318,6 @@
             PerformLayout();
         }
 
-        private System.Windows.Forms.DataGridViewTextBoxColumn Origem;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Destino;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Size;
         private System.Windows.Forms.TextBox txtLimitPath;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
@@ -327,5 +331,9 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Ordem;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Origem;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Destino;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Size;
     }
 }
