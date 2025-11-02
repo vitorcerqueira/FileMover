@@ -28,6 +28,10 @@
             txtSourceFolder = new System.Windows.Forms.TextBox();
             txtDestinationFolder = new System.Windows.Forms.TextBox();
             dataGridView = new System.Windows.Forms.DataGridView();
+            Ordem = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            Origem = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            Destino = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            Size = new System.Windows.Forms.DataGridViewTextBoxColumn();
             btnLoadGrid = new System.Windows.Forms.Button();
             btnMoveFiles = new System.Windows.Forms.Button();
             progressBar = new System.Windows.Forms.ProgressBar();
@@ -44,10 +48,7 @@
             radioCopied = new System.Windows.Forms.RadioButton();
             radioAll = new System.Windows.Forms.RadioButton();
             radioPending = new System.Windows.Forms.RadioButton();
-            Ordem = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            Origem = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            Destino = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            Size = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            btnExportGrid = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView).BeginInit();
             groupBox1.SuspendLayout();
             SuspendLayout();
@@ -55,7 +56,7 @@
             // btnSelectSource
             // 
             btnSelectSource.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnSelectSource.Location = new System.Drawing.Point(912, 26);
+            btnSelectSource.Location = new System.Drawing.Point(706, 26);
             btnSelectSource.Name = "btnSelectSource";
             btnSelectSource.Size = new System.Drawing.Size(160, 28);
             btnSelectSource.TabIndex = 0;
@@ -66,7 +67,7 @@
             // btnSelectDestination
             // 
             btnSelectDestination.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnSelectDestination.Location = new System.Drawing.Point(912, 61);
+            btnSelectDestination.Location = new System.Drawing.Point(706, 61);
             btnSelectDestination.Name = "btnSelectDestination";
             btnSelectDestination.Size = new System.Drawing.Size(160, 31);
             btnSelectDestination.TabIndex = 1;
@@ -79,7 +80,7 @@
             txtSourceFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtSourceFolder.Location = new System.Drawing.Point(84, 26);
             txtSourceFolder.Name = "txtSourceFolder";
-            txtSourceFolder.Size = new System.Drawing.Size(822, 23);
+            txtSourceFolder.Size = new System.Drawing.Size(616, 23);
             txtSourceFolder.TabIndex = 2;
             // 
             // txtDestinationFolder
@@ -87,7 +88,7 @@
             txtDestinationFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtDestinationFolder.Location = new System.Drawing.Point(84, 61);
             txtDestinationFolder.Name = "txtDestinationFolder";
-            txtDestinationFolder.Size = new System.Drawing.Size(822, 23);
+            txtDestinationFolder.Size = new System.Drawing.Size(616, 23);
             txtDestinationFolder.TabIndex = 3;
             // 
             // dataGridView
@@ -101,13 +102,41 @@
             dataGridView.Location = new System.Drawing.Point(12, 100);
             dataGridView.Name = "dataGridView";
             dataGridView.RowHeadersWidth = 62;
-            dataGridView.Size = new System.Drawing.Size(1553, 461);
+            dataGridView.Size = new System.Drawing.Size(1347, 437);
             dataGridView.TabIndex = 4;
+            // 
+            // Ordem
+            // 
+            Ordem.HeaderText = "Ordem";
+            Ordem.Name = "Ordem";
+            Ordem.ReadOnly = true;
+            Ordem.Width = 69;
+            // 
+            // Origem
+            // 
+            Origem.HeaderText = "Source";
+            Origem.MinimumWidth = 8;
+            Origem.Name = "Origem";
+            Origem.Width = 68;
+            // 
+            // Destino
+            // 
+            Destino.HeaderText = "Destination";
+            Destino.MinimumWidth = 8;
+            Destino.Name = "Destino";
+            Destino.Width = 92;
+            // 
+            // Size
+            // 
+            Size.HeaderText = "Size";
+            Size.MinimumWidth = 8;
+            Size.Name = "Size";
+            Size.Width = 52;
             // 
             // btnLoadGrid
             // 
             btnLoadGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            btnLoadGrid.Location = new System.Drawing.Point(12, 567);
+            btnLoadGrid.Location = new System.Drawing.Point(12, 543);
             btnLoadGrid.Name = "btnLoadGrid";
             btnLoadGrid.Size = new System.Drawing.Size(104, 34);
             btnLoadGrid.TabIndex = 5;
@@ -118,7 +147,7 @@
             // btnMoveFiles
             // 
             btnMoveFiles.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            btnMoveFiles.Location = new System.Drawing.Point(122, 567);
+            btnMoveFiles.Location = new System.Drawing.Point(122, 543);
             btnMoveFiles.Name = "btnMoveFiles";
             btnMoveFiles.Size = new System.Drawing.Size(111, 34);
             btnMoveFiles.TabIndex = 6;
@@ -129,9 +158,9 @@
             // progressBar
             // 
             progressBar.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            progressBar.Location = new System.Drawing.Point(239, 567);
+            progressBar.Location = new System.Drawing.Point(239, 543);
             progressBar.Name = "progressBar";
-            progressBar.Size = new System.Drawing.Size(1326, 34);
+            progressBar.Size = new System.Drawing.Size(993, 34);
             progressBar.TabIndex = 7;
             // 
             // txtLimitPath
@@ -172,7 +201,7 @@
             groupBox1.Controls.Add(txtLimitPath);
             groupBox1.Controls.Add(radioAll);
             groupBox1.Controls.Add(radioPending);
-            groupBox1.Location = new System.Drawing.Point(1078, 4);
+            groupBox1.Location = new System.Drawing.Point(872, 4);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new System.Drawing.Size(487, 90);
             groupBox1.TabIndex = 13;
@@ -239,7 +268,6 @@
             radioCopied.TabIndex = 15;
             radioCopied.Text = "Copiados";
             radioCopied.UseVisualStyleBackColor = true;
-            radioCopied.CheckedChanged += radioCopied_CheckedChanged;
             // 
             // radioAll
             // 
@@ -263,37 +291,21 @@
             radioPending.Text = "Pendentes";
             radioPending.UseVisualStyleBackColor = true;
             // 
-            // Ordem
+            // btnExportGrid
             // 
-            Ordem.HeaderText = "Ordem";
-            Ordem.Name = "Ordem";
-            Ordem.ReadOnly = true;
-            Ordem.Width = 69;
-            // 
-            // Origem
-            // 
-            Origem.HeaderText = "Source";
-            Origem.MinimumWidth = 8;
-            Origem.Name = "Origem";
-            Origem.Width = 68;
-            // 
-            // Destino
-            // 
-            Destino.HeaderText = "Destination";
-            Destino.MinimumWidth = 8;
-            Destino.Name = "Destino";
-            Destino.Width = 92;
-            // 
-            // Size
-            // 
-            Size.HeaderText = "Size";
-            Size.MinimumWidth = 8;
-            Size.Name = "Size";
-            Size.Width = 52;
+            btnExportGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            btnExportGrid.Location = new System.Drawing.Point(1238, 545);
+            btnExportGrid.Name = "btnExportGrid";
+            btnExportGrid.Size = new System.Drawing.Size(121, 32);
+            btnExportGrid.TabIndex = 14;
+            btnExportGrid.Text = "Report Copiados";
+            btnExportGrid.UseVisualStyleBackColor = true;
+            btnExportGrid.Click += btnExportGrid_Click;
             // 
             // Form1
             // 
-            ClientSize = new System.Drawing.Size(1577, 621);
+            ClientSize = new System.Drawing.Size(1371, 587);
+            Controls.Add(btnExportGrid);
             Controls.Add(groupBox1);
             Controls.Add(label2);
             Controls.Add(label1);
@@ -335,5 +347,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Origem;
         private System.Windows.Forms.DataGridViewTextBoxColumn Destino;
         private System.Windows.Forms.DataGridViewTextBoxColumn Size;
+        private System.Windows.Forms.Button btnExportGrid;
     }
 }
