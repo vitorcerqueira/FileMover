@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Linq;
 
 namespace FileMover
 {
@@ -233,7 +231,7 @@ namespace FileMover
                     }
                 }
             }
-            ;
+    ;
 
             return "01. Inspeções"; // default
         }
@@ -270,5 +268,53 @@ namespace FileMover
 
             return "";
         }
+
+        public static string[] GetArquivosOrigem(string caminho)
+        {
+            string[] resultado = Array.Empty<string>();
+
+            // Cria e exibe uma tela de carregamento
+            using (Form loadingForm = new Form())
+            {
+                loadingForm.Text = "Aguarde...";
+                loadingForm.StartPosition = FormStartPosition.CenterScreen;
+                loadingForm.Size = new System.Drawing.Size(250, 100);
+                loadingForm.ControlBox = false;
+                loadingForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                loadingForm.TopMost = true;
+
+                Label label = new Label()
+                {
+                    Text = "Aguarde carregando arquivos...",
+                    AutoSize = true,
+                    Location = new System.Drawing.Point(35, 20)
+                };
+
+                loadingForm.Controls.Add(label);
+                loadingForm.Shown += async (sender, e) =>
+                {
+                    resultado = await Task.Run(() =>
+                        Directory.GetFiles(caminho, "*", SearchOption.AllDirectories)
+                        .Where(arquivo =>
+                        {
+                            FileAttributes atributos = File.GetAttributes(arquivo);
+
+                            bool ret = (atributos & FileAttributes.Hidden) == 0 && (atributos & FileAttributes.System) == 0;
+
+                            return ret;
+                        })
+                        .OrderBy(arquivo => arquivo, StringComparer.OrdinalIgnoreCase) // Ordena pelo caminho completo
+                        .ToArray()
+                    );
+
+                    loadingForm.Close();
+                };
+
+                loadingForm.ShowDialog();
+            }
+
+            return resultado;
+        }
+
     }
 }

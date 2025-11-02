@@ -320,7 +320,6 @@
             Name = "Form1";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text = "Rumo - Cópia de arquivos";
-            WindowState = System.Windows.Forms.FormWindowState.Maximized;
             FormClosing += MainForm_FormClosing;
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)dataGridView).EndInit();

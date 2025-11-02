@@ -207,53 +207,6 @@ namespace FileMoverApp
             }
         }
 
-        static string[] GetArquivosOrigem(string caminho)
-        {
-            string[] resultado = Array.Empty<string>();
-
-            // Cria e exibe uma tela de carregamento
-            using (Form loadingForm = new Form())
-            {
-                loadingForm.Text = "Aguarde...";
-                loadingForm.StartPosition = FormStartPosition.CenterScreen;
-                loadingForm.Size = new System.Drawing.Size(250, 100);
-                loadingForm.ControlBox = false;
-                loadingForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-                loadingForm.TopMost = true;
-
-                Label label = new Label()
-                {
-                    Text = "Aguarde carregando arquivos...",
-                    AutoSize = true,
-                    Location = new System.Drawing.Point(35, 20)
-                };
-
-                loadingForm.Controls.Add(label);
-                loadingForm.Shown += async (sender, e) =>
-                {
-                    resultado = await Task.Run(() =>
-                        Directory.GetFiles(caminho, "*", SearchOption.AllDirectories)
-                        .Where(arquivo =>
-                        {
-                            FileAttributes atributos = File.GetAttributes(arquivo);
-
-                            bool ret = (atributos & FileAttributes.Hidden) == 0 && (atributos & FileAttributes.System) == 0;
-
-                            return ret;
-                        })
-                        .OrderBy(arquivo => arquivo, StringComparer.OrdinalIgnoreCase) // Ordena pelo caminho completo
-                        .ToArray()
-                    );
-
-                    loadingForm.Close();
-                };
-
-                loadingForm.ShowDialog();
-            }
-
-            return resultado;
-        }
-
         private void LoadGrid2()
         {
             Invoke(new Action(() =>
@@ -272,7 +225,7 @@ namespace FileMoverApp
                 progressBar.Maximum = 0; //pathFiles.Length;
                 progressBar.Value = 0;
 
-                string[] pathFiles = GetArquivosOrigem(txtSourceFolder.Text);
+                string[] pathFiles = Service.GetArquivosOrigem(txtSourceFolder.Text);
 
                 if (pathFiles.Length == 0) return;
 
