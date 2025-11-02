@@ -44,6 +44,8 @@
             label7 = new System.Windows.Forms.Label();
             textBox7 = new System.Windows.Forms.TextBox();
             button1 = new System.Windows.Forms.Button();
+            label8 = new System.Windows.Forms.Label();
+            textBox8 = new System.Windows.Forms.TextBox();
             SuspendLayout();
             // 
             // label1
@@ -180,11 +182,29 @@
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new System.Drawing.Point(170, 78);
+            label8.Name = "label8";
+            label8.Size = new System.Drawing.Size(25, 15);
+            label8.TabIndex = 17;
+            label8.Text = "Até";
+            // 
+            // textBox8
+            // 
+            textBox8.Location = new System.Drawing.Point(201, 70);
+            textBox8.Name = "textBox8";
+            textBox8.Size = new System.Drawing.Size(88, 23);
+            textBox8.TabIndex = 16;
+            // 
             // Report
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(688, 179);
+            Controls.Add(label8);
+            Controls.Add(textBox8);
             Controls.Add(button1);
             Controls.Add(label7);
             Controls.Add(textBox7);
@@ -226,5 +246,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox textBox7;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox textBox8;
     }
 }
