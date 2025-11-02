@@ -1,21 +1,144 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace FileMover
 {
     public partial class Report : Form
     {
+        private const string ConfigFilePath = "Config_Report.xml";
         public Report()
         {
             InitializeComponent();
+            EnsureConfigFileExists();
+            LoadLastLimitPath();
+        }
+
+        private void SaveLastLimitPath()
+        {
+            try
+            {
+                XDocument config = new XDocument(
+                        new XElement("Configuration",
+                        new XElement("LastDestinationValue", textBox1.Text),
+                        new XElement("LastKmDe", textBox2.Text),
+                        new XElement("LastKmAte", textBox3.Text),
+                        new XElement("LastSubDe", textBox4.Text),
+                        new XElement("LastSubAte", textBox8.Text),
+                        new XElement("LastDisciplina", textBox5.Text),
+                        new XElement("LastYearDe", textBox6.Text),
+                        new XElement("LastYearAte", textBox7.Text)
+                    )
+                );
+                config.Save(ConfigFilePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao salvar o valor: " + ex.Message, "Atenção", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        private void EnsureConfigFileExists()
+        {
+            if (!File.Exists(ConfigFilePath))
+            {
+                try
+                {
+                    XDocument config = new XDocument(
+                        new XElement("Configuration",
+                        new XElement("LastDestinationValue", ""),
+                        new XElement("LastKmDe", ""),
+                        new XElement("LastKmAte", ""),
+                        new XElement("LastSubDe", ""),
+                        new XElement("LastSubAte", ""),
+                        new XElement("LastDisciplina", ""),
+                        new XElement("LastYearDe", ""),
+                        new XElement("LastYearAte", "")
+                        )
+                    );
+                    config.Save(ConfigFilePath);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Erro ao criar o arquivo de configuração: " + ex.Message, "Atenção",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void LoadLastLimitPath()
+        {
+            try
+            {
+                XDocument config = XDocument.Load(ConfigFilePath);
+
+                var valueElement1 = config.Root.Element("LastDestinationValue");
+
+                if (valueElement1 != null)
+                {
+                    textBox1.Text = valueElement1.Value;
+                }
+
+                var valueElement2 = config.Root.Element("LastKmDe");
+
+                if (valueElement2 != null)
+                {
+                    textBox2.Text = valueElement2.Value;
+                }
+
+                var valueElement3 = config.Root.Element("LastKmAte");
+
+                if (valueElement3 != null)
+                {
+                    textBox3.Text = valueElement3.Value;
+                }
+
+                var valueElement4 = config.Root.Element("LastDisciplina");
+
+                if (valueElement4 != null)
+                {
+                    textBox5.Text = valueElement4.Value;
+                }
+
+                var valueElement5 = config.Root.Element("LastYearDe");
+
+                if (valueElement5 != null)
+                {
+                    textBox6.Text = valueElement5.Value;
+                }
+
+                var valueElement6 = config.Root.Element("LastYearAte");
+
+                if (valueElement6 != null)
+                {
+                    textBox7.Text = valueElement6.Value;
+                }
+
+                var valueElement7 = config.Root.Element("LastSubDe");
+
+                if (valueElement7 != null)
+                {
+                    textBox4.Text = valueElement7.Value;
+                }
+                var valueElement8 = config.Root.Element("LastSubAte");
+
+                if (valueElement8 != null)
+                {
+                    textBox8.Text = valueElement8.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao carregar o valor: " + ex.Message, "Atenção", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
 
         private void btnSelectDestination_Click(object sender, EventArgs e)
@@ -24,6 +147,7 @@ namespace FileMover
             {
                 if (fbd.ShowDialog() == DialogResult.OK)
                 {
+                    SaveLastLimitPath();
                     textBox1.Text = fbd.SelectedPath;
                 }
             }
@@ -40,6 +164,8 @@ namespace FileMover
 
             try
             {
+                SaveLastLimitPath();
+
                 var thread = new Thread(Run);
                 thread.Start();
 
@@ -155,7 +281,7 @@ namespace FileMover
                     writer.WriteLine(string.Join(';', linha));
                 }
 
-                MessageBox.Show($"Arquivo salvo em:\n{fileNameCsv}");
+                //MessageBox.Show($"Arquivo salvo em:\n{fileNameCsv}");
 
                 // abrir automaticamente o CSV no Excel ou app padrão
                 try
@@ -178,35 +304,44 @@ namespace FileMover
         {
             if (string.IsNullOrWhiteSpace(value)) return double.NaN;
 
-            // Remove palavras comuns e espaços
-            string s = value.Trim()
-                            .ToUpperInvariant()
-                            .Replace("KM", "")
-                            .Replace("PT", "")
-                            .Trim();
+            string s = value.Trim().ToUpperInvariant();
 
-            // Caso 1: formato "251+825" (km + metros)
-            if (s.Contains("+"))
-            {
-                var parts = s.Split('+');
-                if (parts.Length == 2
-                    && double.TryParse(parts[0].Trim().Replace(",", "."), NumberStyles.Number, CultureInfo.InvariantCulture, out var km)
-                    && double.TryParse(parts[1].Trim().Replace(",", "."), NumberStyles.Number, CultureInfo.InvariantCulture, out var metros))
-                {
-                    // metros é em metros → converte para km
-                    return km + (metros / 1000.0);
-                }
-            }
+            // remove prefixos e sufixos irrelevantes
+            s = s.Replace("KM", "")
+                 .Replace("PT", "")
+                 .Trim();
 
-            // Caso 2: primeiro número com vírgula/ponto (ex.: "219,3", "219.3")
-            var m = Regex.Match(s, @"(\d+(?:[.,]\d+)?)");
-            if (m.Success &&
-                double.TryParse(m.Groups[1].Value.Replace(",", "."), NumberStyles.Number, CultureInfo.InvariantCulture, out var v))
-            {
-                return v;
-            }
+            // corta tudo a partir de vírgula ou "+"
+            int idxVirg = s.IndexOf(',');
+            int idxMais = s.IndexOf('+');
+            int idxCorte = -1;
+
+            if (idxVirg >= 0 && idxMais >= 0)
+                idxCorte = Math.Min(idxVirg, idxMais);
+            else if (idxVirg >= 0)
+                idxCorte = idxVirg;
+            else if (idxMais >= 0)
+                idxCorte = idxMais;
+
+            if (idxCorte >= 0)
+                s = s.Substring(0, idxCorte);
+
+            // extrai o primeiro número que encontrar
+            var match = System.Text.RegularExpressions.Regex.Match(s, @"\d+");
+            if (match.Success && double.TryParse(match.Value, out double km))
+                return km;
 
             return double.NaN;
+        }
+
+        private void Report_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            SaveLastLimitPath();
+        }
+
+        private void Report_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

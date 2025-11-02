@@ -135,6 +135,8 @@ namespace FileMoverApp
                 if (fbd.ShowDialog() == DialogResult.OK)
                 {
                     txtSourceFolder.Text = fbd.SelectedPath;
+
+                    SaveLastLimitPath();
                 }
             }
         }
@@ -146,6 +148,8 @@ namespace FileMoverApp
                 if (fbd.ShowDialog() == DialogResult.OK)
                 {
                     txtDestinationFolder.Text = fbd.SelectedPath;
+
+                    SaveLastLimitPath();
                 }
             }
         }
@@ -161,6 +165,8 @@ namespace FileMoverApp
 
             try
             {
+                SaveLastLimitPath();
+
                 var thread = new Thread(LoadGrid2);
                 thread.Start();
 
@@ -189,6 +195,8 @@ namespace FileMoverApp
                     MessageBox.Show("Please select both source and destination folders.");
                     return;
                 }
+
+                SaveLastLimitPath();
 
                 var thread = new Thread(CopyFiles);
                 thread.Start();
@@ -439,6 +447,8 @@ namespace FileMoverApp
 
         private void btnExportGrid_Click(object sender, EventArgs e)
         {
+            SaveLastLimitPath();
+
             var reportForm = new Report();
             reportForm.ShowDialog(); // Abre como modal. Use Show() se quiser não modal.
         }

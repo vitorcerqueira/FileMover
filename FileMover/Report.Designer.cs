@@ -224,6 +224,8 @@
             Name = "Report";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text = "Report";
+            FormClosing += Report_FormClosing;
+            Load += Report_Load;
             ResumeLayout(false);
             PerformLayout();
         }
