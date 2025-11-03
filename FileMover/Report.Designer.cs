@@ -221,6 +221,8 @@
             Controls.Add(btnSelectDestination);
             Controls.Add(textBox1);
             Controls.Add(label1);
+            MaximizeBox = false;
+            MinimizeBox = false;
             Name = "Report";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text = "Report";
