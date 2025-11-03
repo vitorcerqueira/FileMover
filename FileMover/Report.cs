@@ -189,6 +189,8 @@ namespace FileMover
         {
             Invoke(new Action(() =>
             {
+                var sw = Stopwatch.StartNew();
+
                 int posPathSource = textBox1.Text.Split('\\').Length;
                 string[] pathFiles = Service.GetArquivosOrigem(textBox1.Text);
                 if (pathFiles.Length == 0) return;
@@ -279,7 +281,23 @@ namespace FileMover
                 var anos = Enumerable.Range(startYear, endYear - startYear + 1).ToArray();
 
                 using var writer = new StreamWriter(fileNameCsv, false, Encoding.UTF8);
-                writer.WriteLine(string.Join(';', new[] { "km", "disciplina", "sub" }.Concat(anos.Select(a => a.ToString()))));
+
+                sw.Stop();
+
+                // Metadados
+                writer.WriteLine($"# Relatório gerado: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                writer.WriteLine($"# Destino: {textBox1.Text}");
+                writer.WriteLine($"# Disciplina: {(filtraDisciplina ? textBox5.Text : "Todos")}");
+                writer.WriteLine($"# Km: {(filtraKm ? $"{kmIni} até {kmFim}" : "Todos")}");
+                writer.WriteLine($"# Sub: {(filtraSub ? $"{subIni} até {subFim}" : "Todos")}");
+                writer.WriteLine($"# Anos: {startYear}–{endYear}");
+                writer.WriteLine($"# Linhas (KM/Disciplina/Sub): {rows.Count}");
+                writer.WriteLine($"# Tempo de processamento: {sw.Elapsed:hh\\:mm\\:ss\\.fff}");
+                writer.WriteLine(); // separador
+
+                // Cabeçalho
+                writer.WriteLine(string.Join(';',
+                    new[] { "km", "disciplina", "sub" }.Concat(anos.Select(a => a.ToString()))));
 
                 foreach (var kv in rows.OrderBy(r => r.Key.km).ThenBy(r => r.Key.disciplina).ThenBy(r => r.Key.sub))
                 {
