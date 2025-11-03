@@ -194,24 +194,24 @@ namespace FileMover
                 if (pathFiles.Length == 0) return;
 
                 // ---------- CAPTURA DE FILTROS ----------
-                // informe o intervalo em tela (textbox, numericUpDown etc.)
-                int startYear = int.Parse(textBox6.Text);  // ex.: 2021
-                int endYear = int.Parse(textBox7.Text);    // ex.: 2025
+                int startYear = int.Parse(textBox6.Text);
+                int endYear = int.Parse(textBox7.Text);
+
                 string kmIni = textBox2.Text.Trim();
                 string kmFim = textBox3.Text.Trim();
-                string discFiltro = textBox5.Text.Trim();
 
-                // SUBS: textbox4 até textbox8
-                var subsFiltro = new List<string>();
-                foreach (var tb in new[] { textBox4, textBox8 })
-                {
-                    if (tb != null && !string.IsNullOrWhiteSpace(tb.Text))
-                        subsFiltro.Add(tb.Text.Trim());
-                }
+                string subIni = textBox4.Text.Trim();  // "Sub 01" ou "01"
+                string subFim = textBox8.Text.Trim();  // "Sub 02" ou "02"
+
+                string discFiltro = textBox5.Text.Trim();
 
                 bool filtraKm = !string.IsNullOrEmpty(kmIni) || !string.IsNullOrEmpty(kmFim);
                 bool filtraDisciplina = !string.IsNullOrEmpty(discFiltro);
-                bool filtraSub = subsFiltro.Count > 0;
+
+                // se só um lado do sub vier preenchido, considera como "exato"
+                if (!string.IsNullOrEmpty(subIni) && string.IsNullOrEmpty(subFim)) subFim = subIni;
+                if (string.IsNullOrEmpty(subIni) && !string.IsNullOrEmpty(subFim)) subIni = subFim;
+                bool filtraSub = !string.IsNullOrEmpty(subIni) && !string.IsNullOrEmpty(subFim);
 
                 // ---------- AGREGAÇÃO ----------
                 var rows = new Dictionary<(string km, string disciplina, string sub), HashSet<int>>();
@@ -232,20 +232,32 @@ namespace FileMover
                     if (year < startYear || year > endYear) continue;
 
                     // ---------- FILTROS DINÂMICOS ----------
-                    if (filtraDisciplina && !disciplina.Equals(discFiltro, StringComparison.OrdinalIgnoreCase))
+                    if (filtraDisciplina && !disciplina.Contains(discFiltro, StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    if (filtraSub && !subsFiltro.Contains(sub, StringComparer.OrdinalIgnoreCase))
-                        continue;
+                    // SUB: compara por número (intervalo)
+                    if (filtraSub)
+                    {
+                        int subNum = ParseSubInt(sub);       // "Sub 01" -> 1
+                        int subIniNu = ParseSubInt(subIni);    // "01"     -> 1
+                        int subFimNu = ParseSubInt(subFim);    // "02"     -> 2
 
+                        if (subNum == int.MinValue || subIniNu == int.MinValue || subFimNu == int.MinValue)
+                            continue;
+
+                        if (subNum < subIniNu || subNum > subFimNu)
+                            continue;
+                    }
+
+                    // KM: compara por número (inteiro antes de vírgula ou '+')
                     if (filtraKm)
                     {
-                        double kmNum = ParseKmFlexible(km);      // "km 219,3 pt" -> 219.3
-                        double kmIniNu = ParseKmFlexible(kmIni);   // "219"        -> 219.0
-                        double kmFimNu = ParseKmFlexible(kmFim);   // "220"        -> 220.0
+                        double kmNum = ParseKmFlexible(km);
+                        double kmIniNu = ParseKmFlexible(kmIni);
+                        double kmFimNu = ParseKmFlexible(kmFim);
 
                         if (double.IsNaN(kmNum) || double.IsNaN(kmIniNu) || double.IsNaN(kmFimNu))
-                            continue; // não conseguiu interpretar algum valor
+                            continue;
 
                         if (kmNum < kmIniNu || kmNum > kmFimNu)
                             continue;
@@ -333,6 +345,17 @@ namespace FileMover
 
             return double.NaN;
         }
+
+        // Extrai o primeiro número inteiro do texto do SUB.
+        // Exemplos: "Sub 01" -> 1 | "SUB-25" -> 25 | "15" -> 15
+        private static int ParseSubInt(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return int.MinValue;
+            var m = System.Text.RegularExpressions.Regex.Match(value, @"\d+");
+            if (m.Success && int.TryParse(m.Value, out int v)) return v;
+            return int.MinValue;
+        }
+
 
         private void Report_FormClosing(object sender, FormClosingEventArgs e)
         {

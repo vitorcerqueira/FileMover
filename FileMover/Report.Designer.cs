@@ -77,7 +77,7 @@
             // 
             // textBox2
             // 
-            textBox2.Location = new System.Drawing.Point(76, 41);
+            textBox2.Location = new System.Drawing.Point(76, 67);
             textBox2.Name = "textBox2";
             textBox2.Size = new System.Drawing.Size(88, 23);
             textBox2.TabIndex = 4;
@@ -85,7 +85,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(12, 49);
+            label2.Location = new System.Drawing.Point(12, 75);
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(25, 15);
             label2.TabIndex = 3;
@@ -93,7 +93,7 @@
             // 
             // textBox3
             // 
-            textBox3.Location = new System.Drawing.Point(201, 41);
+            textBox3.Location = new System.Drawing.Point(201, 67);
             textBox3.Name = "textBox3";
             textBox3.Size = new System.Drawing.Size(88, 23);
             textBox3.TabIndex = 5;
@@ -101,7 +101,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(170, 49);
+            label3.Location = new System.Drawing.Point(170, 75);
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(25, 15);
             label3.TabIndex = 6;
@@ -109,7 +109,7 @@
             // 
             // textBox4
             // 
-            textBox4.Location = new System.Drawing.Point(76, 70);
+            textBox4.Location = new System.Drawing.Point(76, 96);
             textBox4.Name = "textBox4";
             textBox4.Size = new System.Drawing.Size(88, 23);
             textBox4.TabIndex = 8;
@@ -117,7 +117,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new System.Drawing.Point(12, 78);
+            label4.Location = new System.Drawing.Point(12, 104);
             label4.Name = "label4";
             label4.Size = new System.Drawing.Size(27, 15);
             label4.TabIndex = 7;
@@ -125,15 +125,15 @@
             // 
             // textBox5
             // 
-            textBox5.Location = new System.Drawing.Point(76, 99);
+            textBox5.Location = new System.Drawing.Point(76, 38);
             textBox5.Name = "textBox5";
-            textBox5.Size = new System.Drawing.Size(88, 23);
+            textBox5.Size = new System.Drawing.Size(213, 23);
             textBox5.TabIndex = 10;
             // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new System.Drawing.Point(12, 107);
+            label5.Location = new System.Drawing.Point(12, 46);
             label5.Name = "label5";
             label5.Size = new System.Drawing.Size(58, 15);
             label5.TabIndex = 9;
@@ -185,7 +185,7 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new System.Drawing.Point(170, 78);
+            label8.Location = new System.Drawing.Point(170, 104);
             label8.Name = "label8";
             label8.Size = new System.Drawing.Size(25, 15);
             label8.TabIndex = 17;
@@ -193,7 +193,7 @@
             // 
             // textBox8
             // 
-            textBox8.Location = new System.Drawing.Point(201, 70);
+            textBox8.Location = new System.Drawing.Point(201, 96);
             textBox8.Name = "textBox8";
             textBox8.Size = new System.Drawing.Size(88, 23);
             textBox8.TabIndex = 16;
