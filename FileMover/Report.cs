@@ -232,7 +232,7 @@ namespace FileMover
                     if (year < startYear || year > endYear) continue;
 
                     // ---------- FILTROS DINÂMICOS ----------
-                    if (filtraDisciplina && !disciplina.Contains(discFiltro, StringComparison.OrdinalIgnoreCase))
+                    if (filtraDisciplina && !pathDisciplinaDestino.Contains(discFiltro, StringComparison.OrdinalIgnoreCase))
                         continue;
 
                     // SUB: compara por número (intervalo)
@@ -264,7 +264,7 @@ namespace FileMover
                     }
 
 
-                    var key = (km.Trim(), disciplina.Trim(), sub.Trim());
+                    var key = (km.Trim(), pathDisciplinaDestino.Trim(), sub.Trim());
                     if (!rows.TryGetValue(key, out var set))
                     {
                         set = new HashSet<int>();
