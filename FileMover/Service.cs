@@ -176,6 +176,18 @@ namespace FileMover
                 }
             }
 
+            foreach (var namePath in EnumerateSearchSegments(pathFilePart, posPathSource))
+            {
+                Match match = Regex.Match(
+                    namePath,
+                    @"(?<![A-Za-z0-9])sub[^0-9]*(\d{1,2})(?!\d)",
+                    RegexOptions.IgnoreCase);
+                if (match.Success && int.TryParse(match.Groups[1].Value, out int number))
+                {
+                    return $"Sub {number:00}";
+                }
+            }
+
             return "";
         }
 
@@ -186,6 +198,24 @@ namespace FileMover
                 if (namePath.StartsWith("km", StringComparison.CurrentCultureIgnoreCase))
                 {
                     return namePath;
+                }
+            }
+
+            foreach (var namePath in EnumerateSearchSegments(pathFilePart, posPathSource))
+            {
+                Match match = Regex.Match(
+                    namePath,
+                    @"(?<![A-Za-z0-9])km[^0-9]*(\d+(?:[.,]\d+)?)(?:[^A-Za-z0-9]+([A-Za-z]{2}))?(?![A-Za-z0-9])",
+                    RegexOptions.IgnoreCase);
+
+                if (match.Success)
+                {
+                    string kmValue = FormatKmValue(match.Groups[1].Value);
+                    string disciplina = match.Groups[2].Success
+                        ? $" {match.Groups[2].Value.ToUpperInvariant()}"
+                        : string.Empty;
+
+                    return $"Km {kmValue}{disciplina}";
                 }
             }
 
@@ -200,6 +230,19 @@ namespace FileMover
                 {
                     string[] namePathList = namePath.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     return namePathList.Length >= 2 ? namePathList[^1] : "";
+                }
+            }
+
+            foreach (var namePath in EnumerateSearchSegments(pathFilePart, posPathSource))
+            {
+                Match match = Regex.Match(
+                    namePath,
+                    @"(?<![A-Za-z0-9])km[^0-9]*\d+(?:[.,]\d+)?(?:[^A-Za-z0-9]+([A-Za-z]{2}))(?![A-Za-z0-9])",
+                    RegexOptions.IgnoreCase);
+
+                if (match.Success)
+                {
+                    return match.Groups[1].Value.ToUpperInvariant();
                 }
             }
 
@@ -478,6 +521,43 @@ namespace FileMover
         private static string NormalizeHeader(string header)
         {
             return Regex.Replace(header ?? string.Empty, @"\s+", " ").Trim().ToUpperInvariant();
+        }
+
+        private static IEnumerable<string> EnumerateSearchSegments(string[] pathFilePart, int posPathSource)
+        {
+            foreach (string segment in pathFilePart.Skip(posPathSource))
+            {
+                if (string.IsNullOrWhiteSpace(segment))
+                {
+                    continue;
+                }
+
+                yield return segment;
+
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(segment);
+                if (!string.Equals(fileNameWithoutExtension, segment, StringComparison.Ordinal))
+                {
+                    yield return fileNameWithoutExtension;
+                }
+            }
+        }
+
+        private static string FormatKmValue(string rawValue)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return string.Empty;
+            }
+
+            string normalized = rawValue.Trim().Replace(',', '.');
+            string[] parts = normalized.Split('.', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length == 2 && int.TryParse(parts[1], out int meters))
+            {
+                return $"{parts[0]}+{meters:000}";
+            }
+
+            return rawValue.Replace('.', ',');
         }
 
         private static string NormalizeSubValue(string sub)
