@@ -212,7 +212,7 @@ namespace FileMover
                 {
                     string kmValue = FormatKmValue(match.Groups[1].Value);
                     string disciplina = match.Groups[2].Success
-                        ? $" {match.Groups[2].Value.ToUpperInvariant()}"
+                        ? $" {match.Groups[2].Value.ToLowerInvariant()}"
                         : string.Empty;
 
                     return $"Km {kmValue}{disciplina}";
