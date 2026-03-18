@@ -387,12 +387,20 @@ namespace FileMoverApp
                         string kmFolder = Service.ExtractKm(relativeParts, 0);
                         string ano = Service.ExtractYear(relativeParts, 0);
                         string destination = "";
+                        string sub = "";
+                        string equipInfra = "";
+                        string kmInicio = "";
+                        string kmFim = "";
                         bool achou = false;
                         bool valido = false;
 
                         if (!string.IsNullOrWhiteSpace(kmFolder) &&
-                            Service.TryFindEquipInfra(kmFolder, ranges, out string equipInfra))
+                            Service.TryFindInfraKmRange(kmFolder, ranges, out Service.InfraKmRange range))
                         {
+                            sub = range.Sub;
+                            equipInfra = range.EquipInfra;
+                            kmInicio = FormatInfraKm(range.KmInicio);
+                            kmFim = FormatInfraKm(range.KmFim);
                             string[] destinationParts = relativeParts.ToArray();
 
                             for (int i = 0; i < destinationParts.Length; i++)
@@ -443,7 +451,7 @@ namespace FileMoverApp
 
                                 requiredInfraSpaceInMB += tamanhoBytes / (1024.0 * 1024.0);
                                 linha++;
-                                AddRowToGrid(dataGridViewInfra, linha, pathFile, destination, tamanho, achou, false);
+                                AddRowToInfraGrid(linha, pathFile, destination, sub, equipInfra, kmInicio, kmFim, tamanho, achou, false);
                                 AdvanceProgress(progressBarInfra);
                             }
                         }
@@ -455,7 +463,7 @@ namespace FileMoverApp
                             }
 
                             linha++;
-                            AddRowToGrid(dataGridViewInfra, linha, pathFile, "", tamanho, false, true);
+                            AddRowToInfraGrid(linha, pathFile, "", sub, equipInfra, kmInicio, kmFim, tamanho, false, true);
                             AdvanceProgress(progressBarInfra);
                         }
                     }
@@ -494,10 +502,21 @@ namespace FileMoverApp
             return (value ?? string.Empty).Replace("/", "-").Trim();
         }
 
+        private static string FormatInfraKm(double value)
+        {
+            return value.ToString("0.###");
+        }
+
         private static void AddRowToGrid(DataGridView grid, int linha, string origem, string destino, string tamanho, bool achou, bool ignorar)
         {
             int rowIndex = grid.Rows.Add(linha, origem, destino, tamanho);
             grid.Rows[rowIndex].DefaultCellStyle.BackColor = ignorar ? Color.Orange : achou ? Color.Green : Color.Tomato;
+        }
+
+        private void AddRowToInfraGrid(int linha, string origem, string destino, string sub, string equipInfra, string kmInicio, string kmFim, string tamanho, bool achou, bool ignorar)
+        {
+            int rowIndex = dataGridViewInfra.Rows.Add(linha, origem, destino, sub, equipInfra, kmInicio, kmFim, tamanho);
+            dataGridViewInfra.Rows[rowIndex].DefaultCellStyle.BackColor = ignorar ? Color.Orange : achou ? Color.Green : Color.Tomato;
         }
 
         private static void AdvanceProgress(ProgressBar progressBarControl)

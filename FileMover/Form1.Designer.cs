@@ -68,6 +68,10 @@ namespace FileMoverApp
             OrdemInfra = new System.Windows.Forms.DataGridViewTextBoxColumn();
             OrigemInfra = new System.Windows.Forms.DataGridViewTextBoxColumn();
             DestinoInfra = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            SubInfraColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            EquipInfraColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            KmInicioColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            KmFimColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             SizeInfraColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             txtInfraDestinationFolder = new System.Windows.Forms.TextBox();
             txtInfraSourceFolder = new System.Windows.Forms.TextBox();
@@ -581,7 +585,7 @@ namespace FileMoverApp
             dataGridViewInfra.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             dataGridViewInfra.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             dataGridViewInfra.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewInfra.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { OrdemInfra, OrigemInfra, DestinoInfra, SizeInfraColumn });
+            dataGridViewInfra.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { OrdemInfra, OrigemInfra, DestinoInfra, SubInfraColumn, EquipInfraColumn, KmInicioColumn, KmFimColumn, SizeInfraColumn });
             dataGridViewInfra.Location = new System.Drawing.Point(8, 126);
             dataGridViewInfra.Name = "dataGridViewInfra";
             dataGridViewInfra.RowHeadersWidth = 62;
@@ -608,6 +612,34 @@ namespace FileMoverApp
             DestinoInfra.MinimumWidth = 8;
             DestinoInfra.Name = "DestinoInfra";
             DestinoInfra.Width = 92;
+            // 
+            // SubInfraColumn
+            // 
+            SubInfraColumn.HeaderText = "SUB";
+            SubInfraColumn.MinimumWidth = 8;
+            SubInfraColumn.Name = "SubInfraColumn";
+            SubInfraColumn.Width = 52;
+            // 
+            // EquipInfraColumn
+            // 
+            EquipInfraColumn.HeaderText = "EQUIP_INFRA";
+            EquipInfraColumn.MinimumWidth = 8;
+            EquipInfraColumn.Name = "EquipInfraColumn";
+            EquipInfraColumn.Width = 104;
+            // 
+            // KmInicioColumn
+            // 
+            KmInicioColumn.HeaderText = "KM INICIO";
+            KmInicioColumn.MinimumWidth = 8;
+            KmInicioColumn.Name = "KmInicioColumn";
+            KmInicioColumn.Width = 83;
+            // 
+            // KmFimColumn
+            // 
+            KmFimColumn.HeaderText = "KM FIM";
+            KmFimColumn.MinimumWidth = 8;
+            KmFimColumn.Name = "KmFimColumn";
+            KmFimColumn.Width = 72;
             // 
             // SizeInfraColumn
             // 
@@ -733,6 +765,10 @@ namespace FileMoverApp
         private System.Windows.Forms.DataGridViewTextBoxColumn OrdemInfra;
         private System.Windows.Forms.DataGridViewTextBoxColumn OrigemInfra;
         private System.Windows.Forms.DataGridViewTextBoxColumn DestinoInfra;
+        private System.Windows.Forms.DataGridViewTextBoxColumn SubInfraColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn EquipInfraColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn KmInicioColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn KmFimColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn SizeInfraColumn;
     }
 }

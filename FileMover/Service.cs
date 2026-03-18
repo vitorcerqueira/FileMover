@@ -14,6 +14,7 @@ namespace FileMover
     {
         public class InfraKmRange
         {
+            public string Sub { get; set; } = string.Empty;
             public string EquipInfra { get; set; } = string.Empty;
             public double KmInicio { get; set; }
             public double KmFim { get; set; }
@@ -326,20 +327,22 @@ namespace FileMover
                     cell => NormalizeHeader(cell.GetString()),
                     cell => cell.Address.ColumnNumber);
 
-            if (!headers.TryGetValue("EQUIP_INFRA", out int equipColumn) ||
+            if (!headers.TryGetValue("SUB", out int subColumn) ||
+                !headers.TryGetValue("EQUIP_INFRA", out int equipColumn) ||
                 !headers.TryGetValue("KM INICIO", out int kmInicioColumn) ||
                 !headers.TryGetValue("KM FIM", out int kmFimColumn))
             {
-                throw new InvalidOperationException("A planilha precisa conter as colunas EQUIP_INFRA, KM INICIO e KM FIM.");
+                throw new InvalidOperationException("A planilha precisa conter as colunas SUB, EQUIP_INFRA, KM INICIO e KM FIM.");
             }
 
             var ranges = new List<InfraKmRange>();
 
             foreach (var row in worksheet.RowsUsed().Skip(1))
             {
+                string sub = row.Cell(subColumn).GetString().Trim();
                 string equipInfra = row.Cell(equipColumn).GetString().Trim();
 
-                if (string.IsNullOrWhiteSpace(equipInfra))
+                if (string.IsNullOrWhiteSpace(sub) || string.IsNullOrWhiteSpace(equipInfra))
                 {
                     continue;
                 }
@@ -364,6 +367,7 @@ namespace FileMover
 
                 ranges.Add(new InfraKmRange
                 {
+                    Sub = sub,
                     EquipInfra = equipInfra,
                     KmInicio = kmInicio,
                     KmFim = kmFim
@@ -377,6 +381,19 @@ namespace FileMover
         {
             equipInfra = string.Empty;
 
+            if (!TryFindInfraKmRange(kmFolderName, ranges, out InfraKmRange match))
+            {
+                return false;
+            }
+
+            equipInfra = match.EquipInfra;
+            return true;
+        }
+
+        public static bool TryFindInfraKmRange(string kmFolderName, IEnumerable<InfraKmRange> ranges, out InfraKmRange range)
+        {
+            range = null;
+
             if (!TryParseKilometerValue(kmFolderName, out double kmValue))
             {
                 return false;
@@ -389,7 +406,7 @@ namespace FileMover
                 return false;
             }
 
-            equipInfra = match.EquipInfra;
+            range = match;
             return true;
         }
 
