@@ -210,9 +210,9 @@ namespace FileMoverApp
             try
             {
                 SaveLastValues();
-                //new Thread(LoadInfraGrid).Start();
+                new Thread(LoadInfraGrid).Start();
 
-                LoadInfraGrid();
+                //LoadInfraGrid();
             }
             catch (Exception ex)
             {
