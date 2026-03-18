@@ -60,7 +60,6 @@ namespace FileMoverApp
             txtInfraSpreadsheet = new System.Windows.Forms.TextBox();
             btnInfraSelectSpreadsheet = new System.Windows.Forms.Button();
             labelInfraDestino = new System.Windows.Forms.Label();
-            labelInfraOrigem = new System.Windows.Forms.Label();
             progressBarInfra = new System.Windows.Forms.ProgressBar();
             btnInfraMoveFiles = new System.Windows.Forms.Button();
             btnInfraLoadGrid = new System.Windows.Forms.Button();
@@ -74,9 +73,7 @@ namespace FileMoverApp
             KmFimColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             SizeInfraColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             txtInfraDestinationFolder = new System.Windows.Forms.TextBox();
-            txtInfraSourceFolder = new System.Windows.Forms.TextBox();
             btnInfraSelectDestination = new System.Windows.Forms.Button();
-            btnInfraSelectSource = new System.Windows.Forms.Button();
             tabControlMain.SuspendLayout();
             tabPageDefault.SuspendLayout();
             groupBox1.SuspendLayout();
@@ -375,15 +372,12 @@ namespace FileMoverApp
             tabPageInfra.Controls.Add(txtInfraSpreadsheet);
             tabPageInfra.Controls.Add(btnInfraSelectSpreadsheet);
             tabPageInfra.Controls.Add(labelInfraDestino);
-            tabPageInfra.Controls.Add(labelInfraOrigem);
             tabPageInfra.Controls.Add(progressBarInfra);
             tabPageInfra.Controls.Add(btnInfraMoveFiles);
             tabPageInfra.Controls.Add(btnInfraLoadGrid);
             tabPageInfra.Controls.Add(dataGridViewInfra);
             tabPageInfra.Controls.Add(txtInfraDestinationFolder);
-            tabPageInfra.Controls.Add(txtInfraSourceFolder);
             tabPageInfra.Controls.Add(btnInfraSelectDestination);
-            tabPageInfra.Controls.Add(btnInfraSelectSource);
             tabPageInfra.Location = new System.Drawing.Point(4, 24);
             tabPageInfra.Name = "tabPageInfra";
             tabPageInfra.Padding = new System.Windows.Forms.Padding(3);
@@ -533,20 +527,11 @@ namespace FileMoverApp
             // labelInfraDestino
             // 
             labelInfraDestino.AutoSize = true;
-            labelInfraDestino.Location = new System.Drawing.Point(8, 102);
+            labelInfraDestino.Location = new System.Drawing.Point(8, 67);
             labelInfraDestino.Name = "labelInfraDestino";
-            labelInfraDestino.Size = new System.Drawing.Size(47, 15);
+            labelInfraDestino.Size = new System.Drawing.Size(59, 15);
             labelInfraDestino.TabIndex = 9;
-            labelInfraDestino.Text = "Destino";
-            // 
-            // labelInfraOrigem
-            // 
-            labelInfraOrigem.AutoSize = true;
-            labelInfraOrigem.Location = new System.Drawing.Point(8, 67);
-            labelInfraOrigem.Name = "labelInfraOrigem";
-            labelInfraOrigem.Size = new System.Drawing.Size(47, 15);
-            labelInfraOrigem.TabIndex = 8;
-            labelInfraOrigem.Text = "Origem";
+            labelInfraDestino.Text = "Pasta base";
             // 
             // progressBarInfra
             // 
@@ -586,10 +571,10 @@ namespace FileMoverApp
             dataGridViewInfra.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             dataGridViewInfra.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewInfra.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { OrdemInfra, OrigemInfra, DestinoInfra, SubInfraColumn, EquipInfraColumn, KmInicioColumn, KmFimColumn, SizeInfraColumn });
-            dataGridViewInfra.Location = new System.Drawing.Point(8, 126);
+            dataGridViewInfra.Location = new System.Drawing.Point(8, 91);
             dataGridViewInfra.Name = "dataGridViewInfra";
             dataGridViewInfra.RowHeadersWidth = 62;
-            dataGridViewInfra.Size = new System.Drawing.Size(1347, 387);
+            dataGridViewInfra.Size = new System.Drawing.Size(1347, 422);
             dataGridViewInfra.TabIndex = 4;
             // 
             // OrdemInfra
@@ -651,40 +636,21 @@ namespace FileMoverApp
             // txtInfraDestinationFolder
             // 
             txtInfraDestinationFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            txtInfraDestinationFolder.Location = new System.Drawing.Point(80, 96);
+            txtInfraDestinationFolder.Location = new System.Drawing.Point(80, 61);
             txtInfraDestinationFolder.Name = "txtInfraDestinationFolder";
             txtInfraDestinationFolder.Size = new System.Drawing.Size(616, 23);
-            txtInfraDestinationFolder.TabIndex = 3;
-            // 
-            // txtInfraSourceFolder
-            // 
-            txtInfraSourceFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            txtInfraSourceFolder.Location = new System.Drawing.Point(80, 61);
-            txtInfraSourceFolder.Name = "txtInfraSourceFolder";
-            txtInfraSourceFolder.Size = new System.Drawing.Size(616, 23);
-            txtInfraSourceFolder.TabIndex = 2;
+            txtInfraDestinationFolder.TabIndex = 2;
             // 
             // btnInfraSelectDestination
             // 
             btnInfraSelectDestination.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnInfraSelectDestination.Location = new System.Drawing.Point(702, 92);
+            btnInfraSelectDestination.Location = new System.Drawing.Point(702, 57);
             btnInfraSelectDestination.Name = "btnInfraSelectDestination";
             btnInfraSelectDestination.Size = new System.Drawing.Size(142, 28);
             btnInfraSelectDestination.TabIndex = 1;
             btnInfraSelectDestination.Text = "Escolher pasta";
             btnInfraSelectDestination.UseVisualStyleBackColor = true;
             btnInfraSelectDestination.Click += btnInfraSelectDestination_Click;
-            // 
-            // btnInfraSelectSource
-            // 
-            btnInfraSelectSource.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnInfraSelectSource.Location = new System.Drawing.Point(702, 57);
-            btnInfraSelectSource.Name = "btnInfraSelectSource";
-            btnInfraSelectSource.Size = new System.Drawing.Size(142, 28);
-            btnInfraSelectSource.TabIndex = 0;
-            btnInfraSelectSource.Text = "Escolher pasta";
-            btnInfraSelectSource.UseVisualStyleBackColor = true;
-            btnInfraSelectSource.Click += btnInfraSelectSource_Click;
             // 
             // Form1
             // 
@@ -753,15 +719,12 @@ namespace FileMoverApp
         private System.Windows.Forms.RadioButton radioInfraAll;
         private System.Windows.Forms.RadioButton radioInfraPending;
         private System.Windows.Forms.Label labelInfraDestino;
-        private System.Windows.Forms.Label labelInfraOrigem;
         private System.Windows.Forms.ProgressBar progressBarInfra;
         private System.Windows.Forms.Button btnInfraMoveFiles;
         private System.Windows.Forms.Button btnInfraLoadGrid;
         private System.Windows.Forms.DataGridView dataGridViewInfra;
         private System.Windows.Forms.TextBox txtInfraDestinationFolder;
-        private System.Windows.Forms.TextBox txtInfraSourceFolder;
         private System.Windows.Forms.Button btnInfraSelectDestination;
-        private System.Windows.Forms.Button btnInfraSelectSource;
         private System.Windows.Forms.DataGridViewTextBoxColumn OrdemInfra;
         private System.Windows.Forms.DataGridViewTextBoxColumn OrigemInfra;
         private System.Windows.Forms.DataGridViewTextBoxColumn DestinoInfra;

@@ -39,7 +39,6 @@ namespace FileMoverApp
                         new XElement("LastYear", ""),
                         new XElement("LastDestinationValue", ""),
                         new XElement("LastInfraSpreadsheet", ""),
-                        new XElement("LastInfraSourceValue", ""),
                         new XElement("LastInfraDestinationValue", ""),
                         new XElement("LastInfraLimitPath", ""),
                         new XElement("LastInfraLimitFile", ""),
@@ -66,7 +65,6 @@ namespace FileMoverApp
                 txtYear.Text = GetConfigValue(config, "LastYear");
                 txtDestinationFolder.Text = GetConfigValue(config, "LastDestinationValue");
                 txtInfraSpreadsheet.Text = GetConfigValue(config, "LastInfraSpreadsheet");
-                txtInfraSourceFolder.Text = GetConfigValue(config, "LastInfraSourceValue");
                 txtInfraDestinationFolder.Text = GetConfigValue(config, "LastInfraDestinationValue");
                 txtInfraLimitPath.Text = GetConfigValue(config, "LastInfraLimitPath");
                 txtInfraLimitFile.Text = GetConfigValue(config, "LastInfraLimitFile");
@@ -96,7 +94,6 @@ namespace FileMoverApp
                         new XElement("LastYear", txtYear.Text),
                         new XElement("LastDestinationValue", txtDestinationFolder.Text),
                         new XElement("LastInfraSpreadsheet", txtInfraSpreadsheet.Text),
-                        new XElement("LastInfraSourceValue", txtInfraSourceFolder.Text),
                         new XElement("LastInfraDestinationValue", txtInfraDestinationFolder.Text),
                         new XElement("LastInfraLimitPath", txtInfraLimitPath.Text),
                         new XElement("LastInfraLimitFile", txtInfraLimitFile.Text),
@@ -124,11 +121,6 @@ namespace FileMoverApp
         private void btnSelectDestination_Click(object sender, EventArgs e)
         {
             SelectFolder(txtDestinationFolder);
-        }
-
-        private void btnInfraSelectSource_Click(object sender, EventArgs e)
-        {
-            SelectFolder(txtInfraSourceFolder);
         }
 
         private void btnInfraSelectDestination_Click(object sender, EventArgs e)
@@ -200,7 +192,7 @@ namespace FileMoverApp
             }
 
             SaveLastValues();
-            new Thread(() => CopyFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true)).Start();
+            new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true, false)).Start();
 
             // CopyFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true));
         }
@@ -208,10 +200,9 @@ namespace FileMoverApp
         private void btnInfraLoadGrid_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtInfraSpreadsheet.Text) ||
-                string.IsNullOrWhiteSpace(txtInfraSourceFolder.Text) ||
                 string.IsNullOrWhiteSpace(txtInfraDestinationFolder.Text))
             {
-                MessageBox.Show("Selecione planilha, origem e destino da aba Infra.", "Atenção",
+                MessageBox.Show("Selecione a planilha e a pasta base da aba Infra.", "Atenção",
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
@@ -231,16 +222,15 @@ namespace FileMoverApp
 
         private void btnInfraMoveFiles_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtInfraSourceFolder.Text) ||
-                string.IsNullOrWhiteSpace(txtInfraDestinationFolder.Text))
+            if (string.IsNullOrWhiteSpace(txtInfraDestinationFolder.Text))
             {
-                MessageBox.Show("Selecione as pastas de origem e destino da aba Infra.", "Atenção",
+                MessageBox.Show("Selecione a pasta base da aba Infra.", "Atenção",
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
             SaveLastValues();
-            new Thread(() => CopyFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, false)).Start();
+            new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, false, true)).Start();
 
             // CopyFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, false)
         }
@@ -366,7 +356,7 @@ namespace FileMoverApp
                     int totLimitFile = int.TryParse(txtInfraLimitFile.Text, out int temp2) ? temp2 : 0;
                     string pathAux = "";
 
-                    string[] pathFiles = Service.GetArquivosOrigem(txtInfraSourceFolder.Text);
+                    string[] pathFiles = Service.GetArquivosOrigem(txtInfraDestinationFolder.Text);
                     if (pathFiles.Length == 0)
                     {
                         return;
@@ -382,7 +372,7 @@ namespace FileMoverApp
                             break;
                         }
 
-                        string relativePath = Path.GetRelativePath(txtInfraSourceFolder.Text, pathFile);
+                        string relativePath = Path.GetRelativePath(txtInfraDestinationFolder.Text, pathFile);
                         string[] relativeParts = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                         string kmFolder = Service.ExtractKm(relativeParts, 0);
                         string ano = Service.ExtractYear(relativeParts, 0);
@@ -527,7 +517,7 @@ namespace FileMoverApp
             }
         }
 
-        private void CopyFiles(DataGridView grid, ProgressBar progress, string destinationRoot, double requiredSpaceMb, bool generateReport)
+        private void ProcessFiles(DataGridView grid, ProgressBar progress, string destinationRoot, double requiredSpaceMb, bool generateReport, bool moveInsteadOfCopy)
         {
             try
             {
@@ -580,7 +570,16 @@ namespace FileMoverApp
                                 Directory.CreateDirectory(destinationDir);
                             }
 
-                            File.Copy(sourceFile, destFile, true);
+                            if (moveInsteadOfCopy)
+                            {
+                                File.Move(sourceFile, destFile);
+                                RemoveEmptyDirectories(Path.GetDirectoryName(sourceFile));
+                            }
+                            else
+                            {
+                                File.Copy(sourceFile, destFile, true);
+                            }
+
                             copiedAny = true;
 
                             if (writer != null)
@@ -632,6 +631,18 @@ namespace FileMoverApp
 
             var reportForm = new Report();
             reportForm.ShowDialog();
+        }
+
+        private static void RemoveEmptyDirectories(string directoryPath)
+        {
+            while (!string.IsNullOrWhiteSpace(directoryPath) &&
+                   Directory.Exists(directoryPath) &&
+                   !Directory.EnumerateFileSystemEntries(directoryPath).Any())
+            {
+                string parentDirectory = Path.GetDirectoryName(directoryPath);
+                Directory.Delete(directoryPath);
+                directoryPath = parentDirectory;
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
