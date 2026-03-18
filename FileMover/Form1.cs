@@ -348,7 +348,7 @@ namespace FileMoverApp
 
                 Invoke(new Action(() =>
                 {
-                     requiredInfraSpaceInMB = 0;
+                    requiredInfraSpaceInMB = 0;
                     dataGridViewInfra.Rows.Clear();
                     progressBarInfra.Maximum = 1;
                     progressBarInfra.Value = 0;
@@ -374,6 +374,7 @@ namespace FileMoverApp
 
                         string relativePath = Path.GetRelativePath(txtInfraDestinationFolder.Text, pathFile);
                         string[] relativeParts = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        string sourceSub = Service.ExtractSub(relativeParts, 0);
                         string kmFolder = Service.ExtractKm(relativeParts, 0);
                         string ano = Service.ExtractYear(relativeParts, 0);
                         string destination = "";
@@ -384,8 +385,9 @@ namespace FileMoverApp
                         bool achou = false;
                         bool valido = false;
 
-                        if (!string.IsNullOrWhiteSpace(kmFolder) &&
-                            Service.TryFindInfraKmRange(kmFolder, ranges, out Service.InfraKmRange range))
+                        if (!string.IsNullOrWhiteSpace(sourceSub) &&
+                            !string.IsNullOrWhiteSpace(kmFolder) &&
+                            Service.TryFindInfraKmRange(sourceSub, kmFolder, ranges, out Service.InfraKmRange range))
                         {
                             sub = range.Sub;
                             equipInfra = range.EquipInfra;

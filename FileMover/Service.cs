@@ -410,6 +410,35 @@ namespace FileMover
             return true;
         }
 
+        public static bool TryFindInfraKmRange(string sub, string kmFolderName, IEnumerable<InfraKmRange> ranges, out InfraKmRange range)
+        {
+            range = null;
+
+            string normalizedSub = NormalizeSubValue(sub);
+            if (string.IsNullOrWhiteSpace(normalizedSub))
+            {
+                return false;
+            }
+
+            if (!TryParseKilometerValue(kmFolderName, out double kmValue))
+            {
+                return false;
+            }
+
+            var match = ranges.FirstOrDefault(item =>
+                NormalizeSubValue(item.Sub).Equals(normalizedSub, StringComparison.OrdinalIgnoreCase) &&
+                kmValue >= item.KmInicio &&
+                kmValue <= item.KmFim);
+
+            if (match == null)
+            {
+                return false;
+            }
+
+            range = match;
+            return true;
+        }
+
         public static bool TryParseKilometerValue(string input, out double value)
         {
             value = 0;
@@ -449,6 +478,24 @@ namespace FileMover
         private static string NormalizeHeader(string header)
         {
             return Regex.Replace(header ?? string.Empty, @"\s+", " ").Trim().ToUpperInvariant();
+        }
+
+        private static string NormalizeSubValue(string sub)
+        {
+            if (string.IsNullOrWhiteSpace(sub))
+            {
+                return string.Empty;
+            }
+
+            string trimmed = sub.Trim();
+            string digits = new string(trimmed.Where(char.IsDigit).ToArray());
+
+            if (int.TryParse(digits, out int number))
+            {
+                return $"Sub {number:00}";
+            }
+
+            return Regex.Replace(trimmed, @"\s+", " ");
         }
     }
 }
