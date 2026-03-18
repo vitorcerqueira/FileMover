@@ -529,7 +529,7 @@ namespace FileMoverApp
             labelInfraDestino.AutoSize = true;
             labelInfraDestino.Location = new System.Drawing.Point(8, 67);
             labelInfraDestino.Name = "labelInfraDestino";
-            labelInfraDestino.Size = new System.Drawing.Size(59, 15);
+            labelInfraDestino.Size = new System.Drawing.Size(62, 15);
             labelInfraDestino.TabIndex = 9;
             labelInfraDestino.Text = "Pasta base";
             // 
@@ -571,10 +571,10 @@ namespace FileMoverApp
             dataGridViewInfra.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             dataGridViewInfra.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewInfra.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { OrdemInfra, OrigemInfra, DestinoInfra, SubInfraColumn, EquipInfraColumn, KmInicioColumn, KmFimColumn, SizeInfraColumn });
-            dataGridViewInfra.Location = new System.Drawing.Point(8, 91);
+            dataGridViewInfra.Location = new System.Drawing.Point(8, 118);
             dataGridViewInfra.Name = "dataGridViewInfra";
             dataGridViewInfra.RowHeadersWidth = 62;
-            dataGridViewInfra.Size = new System.Drawing.Size(1347, 422);
+            dataGridViewInfra.Size = new System.Drawing.Size(1347, 395);
             dataGridViewInfra.TabIndex = 4;
             // 
             // OrdemInfra
@@ -603,28 +603,28 @@ namespace FileMoverApp
             SubInfraColumn.HeaderText = "SUB";
             SubInfraColumn.MinimumWidth = 8;
             SubInfraColumn.Name = "SubInfraColumn";
-            SubInfraColumn.Width = 52;
+            SubInfraColumn.Width = 53;
             // 
             // EquipInfraColumn
             // 
             EquipInfraColumn.HeaderText = "EQUIP_INFRA";
             EquipInfraColumn.MinimumWidth = 8;
             EquipInfraColumn.Name = "EquipInfraColumn";
-            EquipInfraColumn.Width = 104;
+            EquipInfraColumn.Width = 103;
             // 
             // KmInicioColumn
             // 
             KmInicioColumn.HeaderText = "KM INICIO";
             KmInicioColumn.MinimumWidth = 8;
             KmInicioColumn.Name = "KmInicioColumn";
-            KmInicioColumn.Width = 83;
+            KmInicioColumn.Width = 88;
             // 
             // KmFimColumn
             // 
             KmFimColumn.HeaderText = "KM FIM";
             KmFimColumn.MinimumWidth = 8;
             KmFimColumn.Name = "KmFimColumn";
-            KmFimColumn.Width = 72;
+            KmFimColumn.Width = 73;
             // 
             // SizeInfraColumn
             // 
