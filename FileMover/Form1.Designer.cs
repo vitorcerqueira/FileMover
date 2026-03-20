@@ -20,10 +20,12 @@ namespace FileMoverApp
             tabPageDefault = new System.Windows.Forms.TabPage();
             btnExportGrid = new System.Windows.Forms.Button();
             groupBox1 = new System.Windows.Forms.GroupBox();
+            labelSub = new System.Windows.Forms.Label();
             label5 = new System.Windows.Forms.Label();
             label4 = new System.Windows.Forms.Label();
             label3 = new System.Windows.Forms.Label();
             radioIngnored = new System.Windows.Forms.RadioButton();
+            txtSub = new System.Windows.Forms.TextBox();
             txtLimitFile = new System.Windows.Forms.TextBox();
             txtYear = new System.Windows.Forms.TextBox();
             radioCopied = new System.Windows.Forms.RadioButton();
@@ -74,6 +76,8 @@ namespace FileMoverApp
             SizeInfraColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             txtInfraDestinationFolder = new System.Windows.Forms.TextBox();
             btnInfraSelectDestination = new System.Windows.Forms.Button();
+            labelInfraSub = new System.Windows.Forms.Label();
+            txtInfraSub = new System.Windows.Forms.TextBox();
             tabControlMain.SuspendLayout();
             tabPageDefault.SuspendLayout();
             groupBox1.SuspendLayout();
@@ -130,10 +134,12 @@ namespace FileMoverApp
             // groupBox1
             // 
             groupBox1.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            groupBox1.Controls.Add(labelSub);
             groupBox1.Controls.Add(label5);
             groupBox1.Controls.Add(label4);
             groupBox1.Controls.Add(label3);
             groupBox1.Controls.Add(radioIngnored);
+            groupBox1.Controls.Add(txtSub);
             groupBox1.Controls.Add(txtLimitFile);
             groupBox1.Controls.Add(txtYear);
             groupBox1.Controls.Add(radioCopied);
@@ -147,10 +153,19 @@ namespace FileMoverApp
             groupBox1.TabStop = false;
             groupBox1.Text = "Filtros";
             // 
+            // labelSub
+            // 
+            labelSub.AutoSize = true;
+            labelSub.Location = new System.Drawing.Point(102, 14);
+            labelSub.Name = "labelSub";
+            labelSub.Size = new System.Drawing.Size(27, 15);
+            labelSub.TabIndex = 22;
+            labelSub.Text = "Sub";
+            // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new System.Drawing.Point(306, 10);
+            label5.Location = new System.Drawing.Point(334, 14);
             label5.Name = "label5";
             label5.Size = new System.Drawing.Size(92, 15);
             label5.TabIndex = 20;
@@ -159,7 +174,7 @@ namespace FileMoverApp
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new System.Drawing.Point(136, 14);
+            label4.Location = new System.Drawing.Point(188, 14);
             label4.Name = "label4";
             label4.Size = new System.Drawing.Size(104, 15);
             label4.TabIndex = 19;
@@ -170,9 +185,9 @@ namespace FileMoverApp
             label3.AutoSize = true;
             label3.Location = new System.Drawing.Point(6, 14);
             label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(71, 15);
+            label3.Size = new System.Drawing.Size(28, 15);
             label3.TabIndex = 14;
-            label3.Text = "Digite o ano";
+            label3.Text = "Ano";
             // 
             // radioIngnored
             // 
@@ -184,18 +199,25 @@ namespace FileMoverApp
             radioIngnored.Text = "Ignorados";
             radioIngnored.UseVisualStyleBackColor = true;
             // 
+            // txtSub
+            // 
+            txtSub.Location = new System.Drawing.Point(102, 32);
+            txtSub.Name = "txtSub";
+            txtSub.Size = new System.Drawing.Size(80, 23);
+            txtSub.TabIndex = 17;
+            // 
             // txtLimitFile
             // 
-            txtLimitFile.Location = new System.Drawing.Point(136, 32);
+            txtLimitFile.Location = new System.Drawing.Point(188, 32);
             txtLimitFile.Name = "txtLimitFile";
-            txtLimitFile.Size = new System.Drawing.Size(164, 23);
+            txtLimitFile.Size = new System.Drawing.Size(140, 23);
             txtLimitFile.TabIndex = 18;
             // 
             // txtYear
             // 
             txtYear.Location = new System.Drawing.Point(6, 32);
             txtYear.Name = "txtYear";
-            txtYear.Size = new System.Drawing.Size(124, 23);
+            txtYear.Size = new System.Drawing.Size(90, 23);
             txtYear.TabIndex = 16;
             // 
             // radioCopied
@@ -210,9 +232,9 @@ namespace FileMoverApp
             // 
             // txtLimitPath
             // 
-            txtLimitPath.Location = new System.Drawing.Point(306, 32);
+            txtLimitPath.Location = new System.Drawing.Point(334, 32);
             txtLimitPath.Name = "txtLimitPath";
-            txtLimitPath.Size = new System.Drawing.Size(153, 23);
+            txtLimitPath.Size = new System.Drawing.Size(125, 23);
             txtLimitPath.TabIndex = 9;
             // 
             // radioAll
@@ -389,10 +411,12 @@ namespace FileMoverApp
             // groupBoxInfra
             // 
             groupBoxInfra.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            groupBoxInfra.Controls.Add(labelInfraSub);
             groupBoxInfra.Controls.Add(labelInfraLimitPath);
             groupBoxInfra.Controls.Add(labelInfraLimitFile);
             groupBoxInfra.Controls.Add(labelInfraYearFilter);
             groupBoxInfra.Controls.Add(radioInfraIgnored);
+            groupBoxInfra.Controls.Add(txtInfraSub);
             groupBoxInfra.Controls.Add(txtInfraLimitFile);
             groupBoxInfra.Controls.Add(txtInfraYear);
             groupBoxInfra.Controls.Add(radioInfraCopied);
@@ -406,10 +430,19 @@ namespace FileMoverApp
             groupBoxInfra.TabStop = false;
             groupBoxInfra.Text = "Filtros";
             // 
+            // labelInfraSub
+            // 
+            labelInfraSub.AutoSize = true;
+            labelInfraSub.Location = new System.Drawing.Point(102, 14);
+            labelInfraSub.Name = "labelInfraSub";
+            labelInfraSub.Size = new System.Drawing.Size(27, 15);
+            labelInfraSub.TabIndex = 22;
+            labelInfraSub.Text = "Sub";
+            // 
             // labelInfraLimitPath
             // 
             labelInfraLimitPath.AutoSize = true;
-            labelInfraLimitPath.Location = new System.Drawing.Point(306, 10);
+            labelInfraLimitPath.Location = new System.Drawing.Point(334, 14);
             labelInfraLimitPath.Name = "labelInfraLimitPath";
             labelInfraLimitPath.Size = new System.Drawing.Size(92, 15);
             labelInfraLimitPath.TabIndex = 20;
@@ -418,7 +451,7 @@ namespace FileMoverApp
             // labelInfraLimitFile
             // 
             labelInfraLimitFile.AutoSize = true;
-            labelInfraLimitFile.Location = new System.Drawing.Point(136, 14);
+            labelInfraLimitFile.Location = new System.Drawing.Point(188, 14);
             labelInfraLimitFile.Name = "labelInfraLimitFile";
             labelInfraLimitFile.Size = new System.Drawing.Size(104, 15);
             labelInfraLimitFile.TabIndex = 19;
@@ -429,9 +462,9 @@ namespace FileMoverApp
             labelInfraYearFilter.AutoSize = true;
             labelInfraYearFilter.Location = new System.Drawing.Point(6, 14);
             labelInfraYearFilter.Name = "labelInfraYearFilter";
-            labelInfraYearFilter.Size = new System.Drawing.Size(71, 15);
+            labelInfraYearFilter.Size = new System.Drawing.Size(28, 15);
             labelInfraYearFilter.TabIndex = 14;
-            labelInfraYearFilter.Text = "Digite o ano";
+            labelInfraYearFilter.Text = "Ano";
             // 
             // radioInfraIgnored
             // 
@@ -443,18 +476,25 @@ namespace FileMoverApp
             radioInfraIgnored.Text = "Ignorados";
             radioInfraIgnored.UseVisualStyleBackColor = true;
             // 
+            // txtInfraSub
+            // 
+            txtInfraSub.Location = new System.Drawing.Point(102, 32);
+            txtInfraSub.Name = "txtInfraSub";
+            txtInfraSub.Size = new System.Drawing.Size(80, 23);
+            txtInfraSub.TabIndex = 17;
+            // 
             // txtInfraLimitFile
             // 
-            txtInfraLimitFile.Location = new System.Drawing.Point(136, 32);
+            txtInfraLimitFile.Location = new System.Drawing.Point(188, 32);
             txtInfraLimitFile.Name = "txtInfraLimitFile";
-            txtInfraLimitFile.Size = new System.Drawing.Size(164, 23);
+            txtInfraLimitFile.Size = new System.Drawing.Size(140, 23);
             txtInfraLimitFile.TabIndex = 18;
             // 
             // txtInfraYear
             // 
             txtInfraYear.Location = new System.Drawing.Point(6, 32);
             txtInfraYear.Name = "txtInfraYear";
-            txtInfraYear.Size = new System.Drawing.Size(124, 23);
+            txtInfraYear.Size = new System.Drawing.Size(90, 23);
             txtInfraYear.TabIndex = 16;
             // 
             // radioInfraCopied
@@ -469,9 +509,9 @@ namespace FileMoverApp
             // 
             // txtInfraLimitPath
             // 
-            txtInfraLimitPath.Location = new System.Drawing.Point(306, 32);
+            txtInfraLimitPath.Location = new System.Drawing.Point(334, 32);
             txtInfraLimitPath.Name = "txtInfraLimitPath";
-            txtInfraLimitPath.Size = new System.Drawing.Size(153, 23);
+            txtInfraLimitPath.Size = new System.Drawing.Size(125, 23);
             txtInfraLimitPath.TabIndex = 9;
             // 
             // radioInfraAll
@@ -698,6 +738,8 @@ namespace FileMoverApp
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label labelSub;
+        private System.Windows.Forms.TextBox txtSub;
         private System.Windows.Forms.DataGridViewTextBoxColumn Ordem;
         private System.Windows.Forms.DataGridViewTextBoxColumn Origem;
         private System.Windows.Forms.DataGridViewTextBoxColumn Destino;
@@ -719,6 +761,8 @@ namespace FileMoverApp
         private System.Windows.Forms.RadioButton radioInfraAll;
         private System.Windows.Forms.RadioButton radioInfraPending;
         private System.Windows.Forms.Label labelInfraDestino;
+        private System.Windows.Forms.Label labelInfraSub;
+        private System.Windows.Forms.TextBox txtInfraSub;
         private System.Windows.Forms.ProgressBar progressBarInfra;
         private System.Windows.Forms.Button btnInfraMoveFiles;
         private System.Windows.Forms.Button btnInfraLoadGrid;

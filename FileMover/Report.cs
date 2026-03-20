@@ -166,8 +166,9 @@ namespace FileMover
             {
                 SaveLastLimitPath();
 
-                var thread = new Thread(Run);
-                thread.Start();
+                //var thread = new Thread(Run);
+                //thread.Start();
+                Run();
 
                 //Run();
             }
@@ -187,146 +188,139 @@ namespace FileMover
 
         private void Run()
         {
-            Invoke(new Action(() =>
+            //Invoke(new Action(RunCore));
+            RunCore();
+        }
+
+        private void RunCore()
+        {
+            var sw = Stopwatch.StartNew();
+
+            int posPathSource = textBox1.Text.Split('\\').Length;
+            string[] pathFiles = Service.GetArquivosOrigem(textBox1.Text);
+            if (pathFiles.Length == 0) return;
+
+            // ---------- CAPTURA DE FILTROS ----------
+            int startYear = int.Parse(textBox6.Text);
+            int endYear = int.Parse(textBox7.Text);
+
+            string kmIni = textBox2.Text.Trim();
+            string kmFim = textBox3.Text.Trim();
+
+            string subIni = textBox4.Text.Trim();  // "Sub 01" ou "01"
+            string subFim = textBox8.Text.Trim();  // "Sub 02" ou "02"
+
+            string discFiltro = textBox5.Text.Trim();
+
+            bool filtraKm = !string.IsNullOrEmpty(kmIni) || !string.IsNullOrEmpty(kmFim);
+            bool filtraDisciplina = !string.IsNullOrEmpty(discFiltro);
+
+            // se só um lado do sub vier preenchido, considera como "exato"
+            if (!string.IsNullOrEmpty(subIni) && string.IsNullOrEmpty(subFim)) subFim = subIni;
+            if (string.IsNullOrEmpty(subIni) && !string.IsNullOrEmpty(subFim)) subIni = subFim;
+            bool filtraSub = !string.IsNullOrEmpty(subIni) && !string.IsNullOrEmpty(subFim);
+
+            // ---------- AGREGAÇÃO ----------
+            var rows = new Dictionary<(string km, string disciplina, string sub), HashSet<int>>();
+
+            foreach (string pathFile in pathFiles)
             {
-                var sw = Stopwatch.StartNew();
+                string[] pathFilePart = pathFile.Split('\\');
+                string fileName = pathFilePart[^1];
 
-                int posPathSource = textBox1.Text.Split('\\').Length;
-                string[] pathFiles = Service.GetArquivosOrigem(textBox1.Text);
-                if (pathFiles.Length == 0) return;
+                (string sub, string km, string ano, string disciplina, string modalidade, string nomePastaFoto)
+                    = Service.ProcessPathParts(pathFilePart, posPathSource);
 
-                // ---------- CAPTURA DE FILTROS ----------
-                int startYear = int.Parse(textBox6.Text);
-                int endYear = int.Parse(textBox7.Text);
+                string pathDisciplinaDestino = Service.getPathDisciplinaDestino(disciplina);
+                string fileNameDestination = Path.Combine(textBox1.Text, pathDisciplinaDestino, sub, km, modalidade, ano, nomePastaFoto, fileName);
+                if (fileNameDestination != pathFile) continue;
 
-                string kmIni = textBox2.Text.Trim();
-                string kmFim = textBox3.Text.Trim();
+                if (!int.TryParse(ano, out int year)) continue;
+                if (year < startYear || year > endYear) continue;
 
-                string subIni = textBox4.Text.Trim();  // "Sub 01" ou "01"
-                string subFim = textBox8.Text.Trim();  // "Sub 02" ou "02"
+                if (filtraDisciplina && !pathDisciplinaDestino.Contains(discFiltro, StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-                string discFiltro = textBox5.Text.Trim();
-
-                bool filtraKm = !string.IsNullOrEmpty(kmIni) || !string.IsNullOrEmpty(kmFim);
-                bool filtraDisciplina = !string.IsNullOrEmpty(discFiltro);
-
-                // se só um lado do sub vier preenchido, considera como "exato"
-                if (!string.IsNullOrEmpty(subIni) && string.IsNullOrEmpty(subFim)) subFim = subIni;
-                if (string.IsNullOrEmpty(subIni) && !string.IsNullOrEmpty(subFim)) subIni = subFim;
-                bool filtraSub = !string.IsNullOrEmpty(subIni) && !string.IsNullOrEmpty(subFim);
-
-                // ---------- AGREGAÇÃO ----------
-                var rows = new Dictionary<(string km, string disciplina, string sub), HashSet<int>>();
-
-                foreach (string pathFile in pathFiles)
+                if (filtraSub)
                 {
-                    string[] pathFilePart = pathFile.Split('\\');
-                    string fileName = pathFilePart[^1];
+                    int subNum = ParseSubInt(sub);
+                    int subIniNu = ParseSubInt(subIni);
+                    int subFimNu = ParseSubInt(subFim);
 
-                    (string sub, string km, string ano, string disciplina, string modalidade, string nomePastaFoto)
-                        = Service.ProcessPathParts(pathFilePart, posPathSource);
-
-                    string pathDisciplinaDestino = Service.getPathDisciplinaDestino(disciplina);
-                    string fileNameDestination = Path.Combine(textBox1.Text, pathDisciplinaDestino, sub, km, modalidade, ano, nomePastaFoto, fileName);
-                    if (fileNameDestination != pathFile) continue;
-
-                    if (!int.TryParse(ano, out int year)) continue;
-                    if (year < startYear || year > endYear) continue;
-
-                    // ---------- FILTROS DINÂMICOS ----------
-                    if (filtraDisciplina && !pathDisciplinaDestino.Contains(discFiltro, StringComparison.OrdinalIgnoreCase))
+                    if (subNum == int.MinValue || subIniNu == int.MinValue || subFimNu == int.MinValue)
                         continue;
 
-                    // SUB: compara por número (intervalo)
-                    if (filtraSub)
-                    {
-                        int subNum = ParseSubInt(sub);       // "Sub 01" -> 1
-                        int subIniNu = ParseSubInt(subIni);    // "01"     -> 1
-                        int subFimNu = ParseSubInt(subFim);    // "02"     -> 2
-
-                        if (subNum == int.MinValue || subIniNu == int.MinValue || subFimNu == int.MinValue)
-                            continue;
-
-                        if (subNum < subIniNu || subNum > subFimNu)
-                            continue;
-                    }
-
-                    // KM: compara por número (inteiro antes de vírgula ou '+')
-                    if (filtraKm)
-                    {
-                        double kmNum = ParseKmFlexible(km);
-                        double kmIniNu = ParseKmFlexible(kmIni);
-                        double kmFimNu = ParseKmFlexible(kmFim);
-
-                        if (double.IsNaN(kmNum) || double.IsNaN(kmIniNu) || double.IsNaN(kmFimNu))
-                            continue;
-
-                        if (kmNum < kmIniNu || kmNum > kmFimNu)
-                            continue;
-                    }
-
-
-                    var key = (km.Trim(), pathDisciplinaDestino.Trim(), sub.Trim());
-                    if (!rows.TryGetValue(key, out var set))
-                    {
-                        set = new HashSet<int>();
-                        rows[key] = set;
-                    }
-                    set.Add(year);
+                    if (subNum < subIniNu || subNum > subFimNu)
+                        continue;
                 }
 
-                // ---------- GERA CSV ----------
-                Directory.CreateDirectory(@"c:\temp");
-                var fileNameCsv = $@"c:\temp\relatorio_arquivos_copiados_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
-                var anos = Enumerable.Range(startYear, endYear - startYear + 1).ToArray();
-
-                using var writer = new StreamWriter(fileNameCsv, false, Encoding.UTF8);
-
-                sw.Stop();
-
-                // Metadados
-                writer.WriteLine($"# Relatório gerado: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-                writer.WriteLine($"# Destino: {textBox1.Text}");
-                writer.WriteLine($"# Disciplina: {(filtraDisciplina ? textBox5.Text : "Todos")}");
-                writer.WriteLine($"# Km: {(filtraKm ? $"{kmIni} até {kmFim}" : "Todos")}");
-                writer.WriteLine($"# Sub: {(filtraSub ? $"{subIni} até {subFim}" : "Todos")}");
-                writer.WriteLine($"# Anos: {startYear}–{endYear}");
-                writer.WriteLine($"# Linhas (KM/Disciplina/Sub): {rows.Count}");
-                writer.WriteLine($"# Tempo de processamento: {sw.Elapsed:hh\\:mm\\:ss\\.fff}");
-                writer.WriteLine(); // separador
-
-                // Cabeçalho
-                writer.WriteLine(string.Join(';',
-                    new[] { "km", "disciplina", "sub" }.Concat(anos.Select(a => a.ToString()))));
-
-                foreach (var kv in rows.OrderBy(r => r.Key.km).ThenBy(r => r.Key.disciplina).ThenBy(r => r.Key.sub))
+                if (filtraKm)
                 {
-                    var (km, disciplina, sub) = kv.Key;
-                    var anosEncontrados = kv.Value;
+                    double kmNum = ParseKmFlexible(km);
+                    double kmIniNu = ParseKmFlexible(kmIni);
+                    double kmFimNu = ParseKmFlexible(kmFim);
 
-                    var linha = new List<string> { km, disciplina, sub };
-                    foreach (var a in anos)
-                        linha.Add(anosEncontrados.Contains(a) ? "SIM" : "NÃO");
+                    if (double.IsNaN(kmNum) || double.IsNaN(kmIniNu) || double.IsNaN(kmFimNu))
+                        continue;
 
-                    writer.WriteLine(string.Join(';', linha));
+                    if (kmNum < kmIniNu || kmNum > kmFimNu)
+                        continue;
                 }
 
-                //MessageBox.Show($"Arquivo salvo em:\n{fileNameCsv}");
-
-                // abrir automaticamente o CSV no Excel ou app padrão
-                try
+                var key = (km.Trim(), pathDisciplinaDestino.Trim(), sub.Trim());
+                if (!rows.TryGetValue(key, out var set))
                 {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = fileNameCsv,
-                        UseShellExecute = true
-                    });
+                    set = new HashSet<int>();
+                    rows[key] = set;
                 }
-                catch (Exception ex)
+                set.Add(year);
+            }
+
+            Directory.CreateDirectory(@"c:\temp");
+            var fileNameCsv = $@"c:\temp\relatorio_arquivos_copiados_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            var anos = Enumerable.Range(startYear, endYear - startYear + 1).ToArray();
+
+            using var writer = new StreamWriter(fileNameCsv, false, Encoding.UTF8);
+
+            sw.Stop();
+
+            writer.WriteLine($"# Relatório gerado: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            writer.WriteLine($"# Destino: {textBox1.Text}");
+            writer.WriteLine($"# Disciplina: {(filtraDisciplina ? textBox5.Text : "Todos")}");
+            writer.WriteLine($"# Km: {(filtraKm ? $"{kmIni} até {kmFim}" : "Todos")}");
+            writer.WriteLine($"# Sub: {(filtraSub ? $"{subIni} até {subFim}" : "Todos")}");
+            writer.WriteLine($"# Anos: {startYear}–{endYear}");
+            writer.WriteLine($"# Linhas (KM/Disciplina/Sub): {rows.Count}");
+            writer.WriteLine($"# Tempo de processamento: {sw.Elapsed:hh\\:mm\\:ss\\.fff}");
+            writer.WriteLine();
+
+            writer.WriteLine(string.Join(';',
+                new[] { "km", "disciplina", "sub" }.Concat(anos.Select(a => a.ToString()))));
+
+            foreach (var kv in rows.OrderBy(r => r.Key.km).ThenBy(r => r.Key.disciplina).ThenBy(r => r.Key.sub))
+            {
+                var (km, disciplina, sub) = kv.Key;
+                var anosEncontrados = kv.Value;
+
+                var linha = new List<string> { km, disciplina, sub };
+                foreach (var a in anos)
+                    linha.Add(anosEncontrados.Contains(a) ? "SIM" : "NÃO");
+
+                writer.WriteLine(string.Join(';', linha));
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
                 {
-                    MessageBox.Show($"Erro ao abrir o arquivo:\n{ex.Message}");
-                }
-            }));
+                    FileName = fileNameCsv,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro ao abrir o arquivo:\n{ex.Message}");
+            }
         }
 
         // Parser flexível de KM
