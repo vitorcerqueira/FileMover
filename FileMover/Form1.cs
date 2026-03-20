@@ -170,8 +170,15 @@ namespace FileMoverApp
             try
             {
                 SaveLastValues();
-                //new Thread(LoadDefaultGrid).Start();
-                LoadDefaultGrid();
+                if (chkUseThread.Checked)
+                {
+                    new Thread(LoadDefaultGrid).Start();
+                }
+                else
+                {
+                    //new Thread(LoadDefaultGrid).Start();
+                    LoadDefaultGrid();
+                }
 
                 //LoadGrid2();
             }
@@ -199,8 +206,15 @@ namespace FileMoverApp
             }
 
             SaveLastValues();
-            //new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true, false)).Start();
-            ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true, false);
+            if (chkUseThread.Checked)
+            {
+                new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true, false)).Start();
+            }
+            else
+            {
+                //new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true, false)).Start();
+                ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true, false);
+            }
 
             // CopyFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true));
         }
@@ -218,9 +232,15 @@ namespace FileMoverApp
             try
             {
                 SaveLastValues();
-                //new Thread(LoadInfraGrid).Start();
-
-                LoadInfraGrid();
+                if (chkInfraUseThread.Checked)
+                {
+                    new Thread(LoadInfraGrid).Start();
+                }
+                else
+                {
+                    //new Thread(LoadInfraGrid).Start();
+                    LoadInfraGrid();
+                }
             }
             catch (Exception ex)
             {
@@ -238,8 +258,15 @@ namespace FileMoverApp
             }
 
             SaveLastValues();
-            //new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true)).Start();
-            ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true);
+            if (chkInfraUseThread.Checked)
+            {
+                new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true)).Start();
+            }
+            else
+            {
+                //new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true)).Start();
+                ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true);
+            }
 
             // CopyFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, false)
         }
@@ -249,7 +276,7 @@ namespace FileMoverApp
             try
             {
                 //Invoke(new Action(LoadDefaultGridCore));
-                LoadDefaultGridCore();
+                RunOnUiThread(LoadDefaultGridCore);
             }
             catch (Exception ex)
             {
@@ -265,7 +292,7 @@ namespace FileMoverApp
                 var ranges = Service.LoadInfraKmRanges(txtInfraSpreadsheet.Text);
 
                 //Invoke(new Action(() => LoadInfraGridCore(ranges)));
-                LoadInfraGridCore(ranges);
+                RunOnUiThread(() => LoadInfraGridCore(ranges));
             }
             catch (Exception ex)
             {
@@ -428,7 +455,7 @@ namespace FileMoverApp
                     }
 
                     destination = Path.Combine(new[] { txtInfraDestinationFolder.Text }.Concat(destinationParts).ToArray());
-                    achou = File.Exists(destination);
+                    achou = PathsAreEquivalent(pathFile, destination) || File.Exists(destination);
                     valido = true;
                 }
 
@@ -537,6 +564,32 @@ namespace FileMoverApp
             }
         }
 
+        private void RunOnUiThread(Action action)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(action);
+                return;
+            }
+
+            action();
+        }
+
+        private static bool PathsAreEquivalent(string firstPath, string secondPath)
+        {
+            if (string.IsNullOrWhiteSpace(firstPath) || string.IsNullOrWhiteSpace(secondPath))
+            {
+                return false;
+            }
+
+            string normalizedFirst = Path.GetFullPath(firstPath)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string normalizedSecond = Path.GetFullPath(secondPath)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            return string.Equals(normalizedFirst, normalizedSecond, StringComparison.OrdinalIgnoreCase);
+        }
+
         private void ProcessFiles(DataGridView grid, ProgressBar progress, string destinationRoot, double requiredSpaceMb, bool generateReport, bool moveInsteadOfCopy)
         {
             try
@@ -561,8 +614,11 @@ namespace FileMoverApp
                 //    progress.Maximum = Math.Max(1, grid.Rows.Count);
                 //    progress.Value = 0;
                 //}));
-                progress.Maximum = Math.Max(1, grid.Rows.Count);
-                progress.Value = 0;
+                RunOnUiThread(() =>
+                {
+                    progress.Maximum = Math.Max(1, grid.Rows.Count);
+                    progress.Value = 0;
+                });
 
                 StreamWriter writer = null;
                 string auxPath = "";
@@ -629,7 +685,7 @@ namespace FileMoverApp
                         }
 
                         //Invoke(new Action(() => AdvanceProgress(progress)));
-                        AdvanceProgress(progress);
+                        RunOnUiThread(() => AdvanceProgress(progress));
                     }
                 }
                 finally

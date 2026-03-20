@@ -32,6 +32,7 @@ namespace FileMoverApp
             txtLimitPath = new System.Windows.Forms.TextBox();
             radioAll = new System.Windows.Forms.RadioButton();
             radioPending = new System.Windows.Forms.RadioButton();
+            chkUseThread = new System.Windows.Forms.CheckBox();
             label2 = new System.Windows.Forms.Label();
             label1 = new System.Windows.Forms.Label();
             progressBar = new System.Windows.Forms.ProgressBar();
@@ -58,6 +59,7 @@ namespace FileMoverApp
             txtInfraLimitPath = new System.Windows.Forms.TextBox();
             radioInfraAll = new System.Windows.Forms.RadioButton();
             radioInfraPending = new System.Windows.Forms.RadioButton();
+            chkInfraUseThread = new System.Windows.Forms.CheckBox();
             labelInfraPlanilha = new System.Windows.Forms.Label();
             txtInfraSpreadsheet = new System.Windows.Forms.TextBox();
             btnInfraSelectSpreadsheet = new System.Windows.Forms.Button();
@@ -146,6 +148,7 @@ namespace FileMoverApp
             groupBox1.Controls.Add(txtLimitPath);
             groupBox1.Controls.Add(radioAll);
             groupBox1.Controls.Add(radioPending);
+            groupBox1.Controls.Add(chkUseThread);
             groupBox1.Location = new System.Drawing.Point(868, 6);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new System.Drawing.Size(487, 90);
@@ -258,6 +261,18 @@ namespace FileMoverApp
             radioPending.TabIndex = 14;
             radioPending.Text = "Pendentes";
             radioPending.UseVisualStyleBackColor = true;
+            // 
+            // chkUseThread
+            // 
+            chkUseThread.AutoSize = true;
+            chkUseThread.Checked = true;
+            chkUseThread.CheckState = System.Windows.Forms.CheckState.Checked;
+            chkUseThread.Location = new System.Drawing.Point(397, 61);
+            chkUseThread.Name = "chkUseThread";
+            chkUseThread.Size = new System.Drawing.Size(63, 19);
+            chkUseThread.TabIndex = 21;
+            chkUseThread.Text = "Thread";
+            chkUseThread.UseVisualStyleBackColor = true;
             // 
             // label2
             // 
@@ -423,6 +438,7 @@ namespace FileMoverApp
             groupBoxInfra.Controls.Add(txtInfraLimitPath);
             groupBoxInfra.Controls.Add(radioInfraAll);
             groupBoxInfra.Controls.Add(radioInfraPending);
+            groupBoxInfra.Controls.Add(chkInfraUseThread);
             groupBoxInfra.Location = new System.Drawing.Point(868, 22);
             groupBoxInfra.Name = "groupBoxInfra";
             groupBoxInfra.Size = new System.Drawing.Size(487, 90);
@@ -535,6 +551,18 @@ namespace FileMoverApp
             radioInfraPending.TabIndex = 14;
             radioInfraPending.Text = "Pendentes";
             radioInfraPending.UseVisualStyleBackColor = true;
+            // 
+            // chkInfraUseThread
+            // 
+            chkInfraUseThread.AutoSize = true;
+            chkInfraUseThread.Checked = true;
+            chkInfraUseThread.CheckState = System.Windows.Forms.CheckState.Checked;
+            chkInfraUseThread.Location = new System.Drawing.Point(397, 61);
+            chkInfraUseThread.Name = "chkInfraUseThread";
+            chkInfraUseThread.Size = new System.Drawing.Size(63, 19);
+            chkInfraUseThread.TabIndex = 21;
+            chkInfraUseThread.Text = "Thread";
+            chkInfraUseThread.UseVisualStyleBackColor = true;
             // 
             // labelInfraPlanilha
             // 
@@ -735,6 +763,7 @@ namespace FileMoverApp
         private System.Windows.Forms.TextBox txtYear;
         private System.Windows.Forms.TextBox txtLimitFile;
         private System.Windows.Forms.RadioButton radioIngnored;
+        private System.Windows.Forms.CheckBox chkUseThread;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
@@ -760,6 +789,7 @@ namespace FileMoverApp
         private System.Windows.Forms.TextBox txtInfraLimitPath;
         private System.Windows.Forms.RadioButton radioInfraAll;
         private System.Windows.Forms.RadioButton radioInfraPending;
+        private System.Windows.Forms.CheckBox chkInfraUseThread;
         private System.Windows.Forms.Label labelInfraDestino;
         private System.Windows.Forms.Label labelInfraSub;
         private System.Windows.Forms.TextBox txtInfraSub;
