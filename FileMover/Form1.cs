@@ -78,7 +78,6 @@ namespace FileMoverApp
                 txtEquipmentSpreadsheet.Text = GetConfigValue(config, "LastInfraSpreadsheet");
                 txtEquipmentDestinationFolder.Text = GetConfigValue(config, "LastInfraDestinationValue");
                 txtEquipmentLimitPath.Text = GetConfigValue(config, "LastInfraLimitPath");
-                txtEquipmentLimitFile.Text = GetConfigValue(config, "LastInfraLimitFile");
                 txtEquipmentYear.Text = GetConfigValue(config, "LastInfraYear");
                 txtEquipmentSub.Text = GetConfigValue(config, "LastInfraSub");
             }
@@ -622,132 +621,51 @@ namespace FileMoverApp
             progressBarEquipment.Value = 0;
 
             int totLimitPath = int.TryParse(txtEquipmentLimitPath.Text, out int temp1) ? temp1 : 0;
-            int totLimitFile = int.TryParse(txtEquipmentLimitFile.Text, out int temp2) ? temp2 : 0;
-            string pathAux = "";
+            string equipmentYear = string.IsNullOrWhiteSpace(txtEquipmentYear.Text) ? DateTime.Now.Year.ToString() : txtEquipmentYear.Text.Trim();
 
-            string[] pathFiles = Service.GetArquivosOrigem(txtEquipmentDestinationFolder.Text);
-            if (pathFiles.Length == 0)
+            if (ranges.Count == 0)
             {
                 return;
             }
 
-            progressBarEquipment.Maximum = Math.Max(1, totLimitFile == 0 ? pathFiles.Length : totLimitFile);
+            progressBarEquipment.Maximum = Math.Max(1, ranges.Count);
             int linha = 0;
             HashSet<string> addedDestinations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            HashSet<string> addedIgnoredSources = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (string pathFile in pathFiles)
+            foreach (Service.InfraKmRange range in ranges
+                .OrderBy(item => NormalizeEquipmentSubValue(item.Sub))
+                .ThenBy(item => SanitizePathSegment(item.EquipInfra), StringComparer.OrdinalIgnoreCase)
+                .ThenBy(item => item.KmInicio))
             {
-                if (totLimitFile == 0 && !string.IsNullOrWhiteSpace(txtEquipmentLimitFile.Text))
+                string sub = NormalizeEquipmentSubValue(range.Sub);
+                string equipInfra = SanitizePathSegment(range.EquipInfra);
+                string kmInicio = FormatInfraKm(range.KmInicio);
+                string kmFim = FormatInfraKm(range.KmFim);
+                string destinationFolder = Path.Combine(txtEquipmentDestinationFolder.Text, sub, equipInfra, equipmentYear);
+
+                if (!addedDestinations.Add(destinationFolder))
                 {
-                    break;
+                    continue;
                 }
 
-                string relativePath = Path.GetRelativePath(txtEquipmentDestinationFolder.Text, pathFile);
-                string[] relativeParts = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                string sourceSub = Service.ExtractSub(relativeParts, 0);
-                string kmFolder = Service.ExtractKm(relativeParts, 0);
-                string currentEquipInfra = GetCurrentInfraFolder(relativeParts);
-                string ano = Service.ExtractYear(relativeParts, 0);
-                string sourceFolder = Path.GetDirectoryName(pathFile) ?? string.Empty;
-                string destinationFolder = string.Empty;
-                string sub = string.Empty;
-                string equipInfra = string.Empty;
-                string kmInicio = string.Empty;
-                string kmFim = string.Empty;
-                bool existe = false;
-                bool valido = false;
+                bool existe = Directory.Exists(destinationFolder);
+                bool statusCompativel = radioEquipmentAll.Checked ||
+                                        (!existe && radioEquipmentPending.Checked) ||
+                                        (existe && radioEquipmentCopied.Checked);
 
-                Service.InfraKmRange range = null;
-
-                bool encontrouRangePorKm = !string.IsNullOrWhiteSpace(sourceSub) &&
-                                           !string.IsNullOrWhiteSpace(kmFolder) &&
-                                           Service.TryFindInfraKmRange(sourceSub, kmFolder, ranges, out range);
-
-                bool encontrouRangePorEquip = !encontrouRangePorKm &&
-                                              !string.IsNullOrWhiteSpace(sourceSub) &&
-                                              !string.IsNullOrWhiteSpace(currentEquipInfra) &&
-                                              Service.TryFindInfraRangeByEquip(sourceSub, currentEquipInfra, ranges, out range);
-
-                if (encontrouRangePorKm || encontrouRangePorEquip)
+                if (statusCompativel &&
+                    EquipmentSubMatchesFilter(sub, txtEquipmentSub.Text))
                 {
-                    sub = range.Sub;
-                    equipInfra = range.EquipInfra;
-                    kmInicio = FormatInfraKm(range.KmInicio);
-                    kmFim = FormatInfraKm(range.KmFim);
-                    string[] destinationParts = relativeParts.ToArray();
-
-                    for (int i = 0; i < destinationParts.Length; i++)
+                    if (!string.IsNullOrWhiteSpace(txtEquipmentLimitPath.Text))
                     {
-                        if (destinationParts[i].StartsWith("km", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(SanitizePathSegment(destinationParts[i]), SanitizePathSegment(currentEquipInfra), StringComparison.OrdinalIgnoreCase))
+                        if (linha >= totLimitPath)
                         {
-                            destinationParts[i] = SanitizePathSegment(equipInfra);
                             break;
                         }
                     }
 
-                    string destinationFile = Path.Combine(new[] { txtEquipmentDestinationFolder.Text }.Concat(destinationParts).ToArray());
-                    destinationFolder = Path.GetDirectoryName(destinationFile) ?? string.Empty;
-                    existe = Directory.Exists(destinationFolder);
-                    valido = !string.IsNullOrWhiteSpace(destinationFolder);
-                }
-
-                if (valido)
-                {
-                    bool statusCompativel = radioEquipmentAll.Checked ||
-                                            (!existe && radioEquipmentPending.Checked) ||
-                                            (existe && radioEquipmentCopied.Checked);
-
-                    if (statusCompativel &&
-                        ano.Contains(txtEquipmentYear.Text) &&
-                        sub.Contains(txtEquipmentSub.Text, StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (!addedDestinations.Add(destinationFolder))
-                        {
-                            continue;
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(txtEquipmentLimitFile.Text))
-                        {
-                            totLimitFile--;
-                        }
-
-                        string currentPath = BuildInfraGroupKey(relativeParts);
-                        if (currentPath != pathAux)
-                        {
-                            pathAux = currentPath;
-
-                            if (!string.IsNullOrWhiteSpace(txtEquipmentLimitPath.Text))
-                            {
-                                totLimitPath--;
-
-                                if (totLimitPath < 0)
-                                {
-                                    break;
-                                }
-                            }
-                        }
-
-                        linha++;
-                        AddRowToEquipmentGrid(linha, sourceFolder, destinationFolder, sub, equipInfra, kmInicio, kmFim, existe, false);
-                        AdvanceProgress(progressBarEquipment);
-                    }
-                }
-                else if (!radioEquipmentPending.Checked && !radioEquipmentCopied.Checked)
-                {
-                    if (!addedIgnoredSources.Add(sourceFolder))
-                    {
-                        continue;
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(txtEquipmentLimitFile.Text))
-                    {
-                        totLimitFile--;
-                    }
-
                     linha++;
-                    AddRowToEquipmentGrid(linha, sourceFolder, "", sub, equipInfra, kmInicio, kmFim, false, true);
+                    AddRowToEquipmentGrid(linha, destinationFolder, sub, equipInfra, kmInicio, kmFim, existe, false);
                     AdvanceProgress(progressBarEquipment);
                 }
             }
@@ -784,6 +702,39 @@ namespace FileMoverApp
             return value.ToString("0.###");
         }
 
+        private static bool EquipmentSubMatchesFilter(string subValue, string filterValue)
+        {
+            string normalizedFilter = NormalizeSubFilterValue(filterValue);
+            if (string.IsNullOrWhiteSpace(normalizedFilter))
+            {
+                return true;
+            }
+
+            return string.Equals(NormalizeSubFilterValue(subValue), normalizedFilter, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string NormalizeEquipmentSubValue(string value)
+        {
+            string normalized = NormalizeSubFilterValue(value);
+            return string.IsNullOrWhiteSpace(normalized) ? value.Trim() : normalized;
+        }
+
+        private static string NormalizeSubFilterValue(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            string digits = new string(value.Where(char.IsDigit).ToArray());
+            if (int.TryParse(digits, out int number))
+            {
+                return $"Sub {number:00}";
+            }
+
+            return value.Trim();
+        }
+
         private static string GetCurrentInfraFolder(string[] relativeParts)
         {
             for (int i = 0; i < relativeParts.Length; i++)
@@ -814,10 +765,10 @@ namespace FileMoverApp
             dataGridViewInfra.Rows[rowIndex].DefaultCellStyle.BackColor = ignorar ? Color.Orange : achou ? Color.Green : Color.Tomato;
         }
 
-        private void AddRowToEquipmentGrid(int linha, string origem, string destino, string sub, string equipInfra, string kmInicio, string kmFim, bool achou, bool ignorar)
+        private void AddRowToEquipmentGrid(int linha, string destino, string sub, string equipInfra, string kmInicio, string kmFim, bool achou, bool ignorar)
         {
             string status = ignorar ? "Ignorado" : achou ? "Ja existe" : "Pendente";
-            int rowIndex = dataGridViewEquipment.Rows.Add(linha, origem, destino, sub, equipInfra, kmInicio, kmFim, status);
+            int rowIndex = dataGridViewEquipment.Rows.Add(linha, destino, sub, equipInfra, kmInicio, kmFim, status);
             dataGridViewEquipment.Rows[rowIndex].DefaultCellStyle.BackColor = ignorar ? Color.Orange : achou ? Color.Green : Color.Tomato;
         }
 
@@ -869,7 +820,7 @@ namespace FileMoverApp
 
                 foreach (DataGridViewRow row in grid.Rows)
                 {
-                    string destinationFolder = row.Cells[2].Value?.ToString() ?? string.Empty;
+                    string destinationFolder = row.Cells[1].Value?.ToString() ?? string.Empty;
                     bool shouldCreate = !string.IsNullOrWhiteSpace(destinationFolder) && !Directory.Exists(destinationFolder);
 
                     if (shouldCreate)
@@ -882,7 +833,7 @@ namespace FileMoverApp
                     {
                         if (!string.IsNullOrWhiteSpace(destinationFolder))
                         {
-                            row.Cells[7].Value = Directory.Exists(destinationFolder) ? "Ja existe" : "Pendente";
+                            row.Cells[6].Value = Directory.Exists(destinationFolder) ? "Ja existe" : "Pendente";
                             row.DefaultCellStyle.BackColor = Directory.Exists(destinationFolder) ? Color.Green : Color.Tomato;
                         }
 
@@ -1197,6 +1148,7 @@ namespace FileMoverApp
 
         private void Form1_Load(object sender, EventArgs e)
         {
+           
         }
     }
 }

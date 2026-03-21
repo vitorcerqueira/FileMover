@@ -49,40 +49,6 @@ namespace FileMoverApp
             btnSelectDestination = new System.Windows.Forms.Button();
             btnSelectSource = new System.Windows.Forms.Button();
             tabPageInfra = new System.Windows.Forms.TabPage();
-            tabPageEquipment = new System.Windows.Forms.TabPage();
-            groupBoxEquipment = new System.Windows.Forms.GroupBox();
-            labelEquipmentSub = new System.Windows.Forms.Label();
-            labelEquipmentLimitPath = new System.Windows.Forms.Label();
-            labelEquipmentLimitFile = new System.Windows.Forms.Label();
-            labelEquipmentYearFilter = new System.Windows.Forms.Label();
-            radioEquipmentIgnored = new System.Windows.Forms.RadioButton();
-            txtEquipmentSub = new System.Windows.Forms.TextBox();
-            txtEquipmentLimitFile = new System.Windows.Forms.TextBox();
-            txtEquipmentYear = new System.Windows.Forms.TextBox();
-            radioEquipmentCopied = new System.Windows.Forms.RadioButton();
-            txtEquipmentLimitPath = new System.Windows.Forms.TextBox();
-            radioEquipmentAll = new System.Windows.Forms.RadioButton();
-            radioEquipmentPending = new System.Windows.Forms.RadioButton();
-            chkEquipmentUseThread = new System.Windows.Forms.CheckBox();
-            labelEquipmentPlanilha = new System.Windows.Forms.Label();
-            txtEquipmentSpreadsheet = new System.Windows.Forms.TextBox();
-            btnEquipmentSelectSpreadsheet = new System.Windows.Forms.Button();
-            labelEquipmentDestino = new System.Windows.Forms.Label();
-            progressBarEquipment = new System.Windows.Forms.ProgressBar();
-            btnEquipmentCreateFolders = new System.Windows.Forms.Button();
-            btnEquipmentLoadGrid = new System.Windows.Forms.Button();
-            btnEquipmentExportGrid = new System.Windows.Forms.Button();
-            dataGridViewEquipment = new System.Windows.Forms.DataGridView();
-            OrdemEquipment = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            OrigemEquipment = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            DestinoEquipment = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            SubEquipmentColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            EquipEquipmentColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            KmInicioEquipmentColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            KmFimEquipmentColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            StatusEquipmentColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            txtEquipmentDestinationFolder = new System.Windows.Forms.TextBox();
-            btnEquipmentSelectDestination = new System.Windows.Forms.Button();
             groupBoxInfra = new System.Windows.Forms.GroupBox();
             labelInfraSub = new System.Windows.Forms.Label();
             labelInfraLimitPath = new System.Windows.Forms.Label();
@@ -116,16 +82,47 @@ namespace FileMoverApp
             SizeInfraColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             txtInfraDestinationFolder = new System.Windows.Forms.TextBox();
             btnInfraSelectDestination = new System.Windows.Forms.Button();
+            tabPageEquipment = new System.Windows.Forms.TabPage();
+            groupBoxEquipment = new System.Windows.Forms.GroupBox();
+            labelEquipmentSub = new System.Windows.Forms.Label();
+            labelEquipmentLimitPath = new System.Windows.Forms.Label();
+            radioEquipmentIgnored = new System.Windows.Forms.RadioButton();
+            txtEquipmentSub = new System.Windows.Forms.TextBox();
+            radioEquipmentCopied = new System.Windows.Forms.RadioButton();
+            txtEquipmentLimitPath = new System.Windows.Forms.TextBox();
+            radioEquipmentAll = new System.Windows.Forms.RadioButton();
+            radioEquipmentPending = new System.Windows.Forms.RadioButton();
+            chkEquipmentUseThread = new System.Windows.Forms.CheckBox();
+            labelEquipmentPlanilha = new System.Windows.Forms.Label();
+            txtEquipmentSpreadsheet = new System.Windows.Forms.TextBox();
+            btnEquipmentSelectSpreadsheet = new System.Windows.Forms.Button();
+            labelEquipmentDestino = new System.Windows.Forms.Label();
+            labelEquipmentAno = new System.Windows.Forms.Label();
+            txtEquipmentYear = new System.Windows.Forms.TextBox();
+            progressBarEquipment = new System.Windows.Forms.ProgressBar();
+            btnEquipmentCreateFolders = new System.Windows.Forms.Button();
+            btnEquipmentLoadGrid = new System.Windows.Forms.Button();
+            btnEquipmentExportGrid = new System.Windows.Forms.Button();
+            dataGridViewEquipment = new System.Windows.Forms.DataGridView();
+            OrdemEquipment = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            DestinoEquipment = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            SubEquipmentColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            EquipEquipmentColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            KmInicioEquipmentColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            KmFimEquipmentColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            StatusEquipmentColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            txtEquipmentDestinationFolder = new System.Windows.Forms.TextBox();
+            btnEquipmentSelectDestination = new System.Windows.Forms.Button();
             tabControlMain.SuspendLayout();
             tabPageDefault.SuspendLayout();
             groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView).BeginInit();
             tabPageInfra.SuspendLayout();
+            groupBoxInfra.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridViewInfra).BeginInit();
             tabPageEquipment.SuspendLayout();
             groupBoxEquipment.SuspendLayout();
-            groupBoxInfra.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewEquipment).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)dataGridViewInfra).BeginInit();
             SuspendLayout();
             // 
             // tabControlMain
@@ -476,336 +473,6 @@ namespace FileMoverApp
             tabPageInfra.Text = "Rename";
             tabPageInfra.UseVisualStyleBackColor = true;
             // 
-            // tabPageEquipment
-            // 
-            tabPageEquipment.Controls.Add(groupBoxEquipment);
-            tabPageEquipment.Controls.Add(labelEquipmentPlanilha);
-            tabPageEquipment.Controls.Add(txtEquipmentSpreadsheet);
-            tabPageEquipment.Controls.Add(btnEquipmentSelectSpreadsheet);
-            tabPageEquipment.Controls.Add(labelEquipmentDestino);
-            tabPageEquipment.Controls.Add(progressBarEquipment);
-            tabPageEquipment.Controls.Add(btnEquipmentCreateFolders);
-            tabPageEquipment.Controls.Add(btnEquipmentLoadGrid);
-            tabPageEquipment.Controls.Add(btnEquipmentExportGrid);
-            tabPageEquipment.Controls.Add(dataGridViewEquipment);
-            tabPageEquipment.Controls.Add(txtEquipmentDestinationFolder);
-            tabPageEquipment.Controls.Add(btnEquipmentSelectDestination);
-            tabPageEquipment.Location = new System.Drawing.Point(4, 24);
-            tabPageEquipment.Name = "tabPageEquipment";
-            tabPageEquipment.Padding = new System.Windows.Forms.Padding(3);
-            tabPageEquipment.Size = new System.Drawing.Size(1363, 559);
-            tabPageEquipment.TabIndex = 2;
-            tabPageEquipment.Text = "Criar pastas Equipamentos";
-            tabPageEquipment.UseVisualStyleBackColor = true;
-            // 
-            // groupBoxEquipment
-            // 
-            groupBoxEquipment.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            groupBoxEquipment.Controls.Add(labelEquipmentSub);
-            groupBoxEquipment.Controls.Add(labelEquipmentLimitPath);
-            groupBoxEquipment.Controls.Add(labelEquipmentLimitFile);
-            groupBoxEquipment.Controls.Add(labelEquipmentYearFilter);
-            groupBoxEquipment.Controls.Add(radioEquipmentIgnored);
-            groupBoxEquipment.Controls.Add(txtEquipmentSub);
-            groupBoxEquipment.Controls.Add(txtEquipmentLimitFile);
-            groupBoxEquipment.Controls.Add(txtEquipmentYear);
-            groupBoxEquipment.Controls.Add(radioEquipmentCopied);
-            groupBoxEquipment.Controls.Add(txtEquipmentLimitPath);
-            groupBoxEquipment.Controls.Add(radioEquipmentAll);
-            groupBoxEquipment.Controls.Add(radioEquipmentPending);
-            groupBoxEquipment.Controls.Add(chkEquipmentUseThread);
-            groupBoxEquipment.Location = new System.Drawing.Point(868, 22);
-            groupBoxEquipment.Name = "groupBoxEquipment";
-            groupBoxEquipment.Size = new System.Drawing.Size(487, 90);
-            groupBoxEquipment.TabIndex = 13;
-            groupBoxEquipment.TabStop = false;
-            groupBoxEquipment.Text = "Filtros";
-            // 
-            // labelEquipmentSub
-            // 
-            labelEquipmentSub.AutoSize = true;
-            labelEquipmentSub.Location = new System.Drawing.Point(102, 14);
-            labelEquipmentSub.Name = "labelEquipmentSub";
-            labelEquipmentSub.Size = new System.Drawing.Size(27, 15);
-            labelEquipmentSub.TabIndex = 22;
-            labelEquipmentSub.Text = "Sub";
-            // 
-            // labelEquipmentLimitPath
-            // 
-            labelEquipmentLimitPath.AutoSize = true;
-            labelEquipmentLimitPath.Location = new System.Drawing.Point(334, 14);
-            labelEquipmentLimitPath.Name = "labelEquipmentLimitPath";
-            labelEquipmentLimitPath.Size = new System.Drawing.Size(92, 15);
-            labelEquipmentLimitPath.TabIndex = 20;
-            labelEquipmentLimitPath.Text = "Limite de pastas";
-            // 
-            // labelEquipmentLimitFile
-            // 
-            labelEquipmentLimitFile.AutoSize = true;
-            labelEquipmentLimitFile.Location = new System.Drawing.Point(188, 14);
-            labelEquipmentLimitFile.Name = "labelEquipmentLimitFile";
-            labelEquipmentLimitFile.Size = new System.Drawing.Size(104, 15);
-            labelEquipmentLimitFile.TabIndex = 19;
-            labelEquipmentLimitFile.Text = "Limite de arquivos";
-            // 
-            // labelEquipmentYearFilter
-            // 
-            labelEquipmentYearFilter.AutoSize = true;
-            labelEquipmentYearFilter.Location = new System.Drawing.Point(6, 14);
-            labelEquipmentYearFilter.Name = "labelEquipmentYearFilter";
-            labelEquipmentYearFilter.Size = new System.Drawing.Size(29, 15);
-            labelEquipmentYearFilter.TabIndex = 14;
-            labelEquipmentYearFilter.Text = "Ano";
-            // 
-            // radioEquipmentIgnored
-            // 
-            radioEquipmentIgnored.AutoSize = true;
-            radioEquipmentIgnored.Location = new System.Drawing.Point(313, 61);
-            radioEquipmentIgnored.Name = "radioEquipmentIgnored";
-            radioEquipmentIgnored.Size = new System.Drawing.Size(78, 19);
-            radioEquipmentIgnored.TabIndex = 16;
-            radioEquipmentIgnored.Text = "Ignorados";
-            radioEquipmentIgnored.UseVisualStyleBackColor = true;
-            // 
-            // txtEquipmentSub
-            // 
-            txtEquipmentSub.Location = new System.Drawing.Point(102, 32);
-            txtEquipmentSub.Name = "txtEquipmentSub";
-            txtEquipmentSub.Size = new System.Drawing.Size(80, 23);
-            txtEquipmentSub.TabIndex = 17;
-            // 
-            // txtEquipmentLimitFile
-            // 
-            txtEquipmentLimitFile.Location = new System.Drawing.Point(188, 32);
-            txtEquipmentLimitFile.Name = "txtEquipmentLimitFile";
-            txtEquipmentLimitFile.Size = new System.Drawing.Size(140, 23);
-            txtEquipmentLimitFile.TabIndex = 18;
-            // 
-            // txtEquipmentYear
-            // 
-            txtEquipmentYear.Location = new System.Drawing.Point(6, 32);
-            txtEquipmentYear.Name = "txtEquipmentYear";
-            txtEquipmentYear.Size = new System.Drawing.Size(90, 23);
-            txtEquipmentYear.TabIndex = 16;
-            // 
-            // radioEquipmentCopied
-            // 
-            radioEquipmentCopied.AutoSize = true;
-            radioEquipmentCopied.Location = new System.Drawing.Point(206, 61);
-            radioEquipmentCopied.Name = "radioEquipmentCopied";
-            radioEquipmentCopied.Size = new System.Drawing.Size(75, 19);
-            radioEquipmentCopied.TabIndex = 15;
-            radioEquipmentCopied.Text = "Copiados";
-            radioEquipmentCopied.UseVisualStyleBackColor = true;
-            // 
-            // txtEquipmentLimitPath
-            // 
-            txtEquipmentLimitPath.Location = new System.Drawing.Point(334, 32);
-            txtEquipmentLimitPath.Name = "txtEquipmentLimitPath";
-            txtEquipmentLimitPath.Size = new System.Drawing.Size(125, 23);
-            txtEquipmentLimitPath.TabIndex = 9;
-            // 
-            // radioEquipmentAll
-            // 
-            radioEquipmentAll.AutoSize = true;
-            radioEquipmentAll.Checked = true;
-            radioEquipmentAll.Location = new System.Drawing.Point(6, 61);
-            radioEquipmentAll.Name = "radioEquipmentAll";
-            radioEquipmentAll.Size = new System.Drawing.Size(57, 19);
-            radioEquipmentAll.TabIndex = 13;
-            radioEquipmentAll.TabStop = true;
-            radioEquipmentAll.Text = "Todos";
-            radioEquipmentAll.UseVisualStyleBackColor = true;
-            // 
-            // radioEquipmentPending
-            // 
-            radioEquipmentPending.AutoSize = true;
-            radioEquipmentPending.Location = new System.Drawing.Point(92, 61);
-            radioEquipmentPending.Name = "radioEquipmentPending";
-            radioEquipmentPending.Size = new System.Drawing.Size(80, 19);
-            radioEquipmentPending.TabIndex = 14;
-            radioEquipmentPending.Text = "Pendentes";
-            radioEquipmentPending.UseVisualStyleBackColor = true;
-            // 
-            // chkEquipmentUseThread
-            // 
-            chkEquipmentUseThread.AutoSize = true;
-            chkEquipmentUseThread.Checked = true;
-            chkEquipmentUseThread.CheckState = System.Windows.Forms.CheckState.Checked;
-            chkEquipmentUseThread.Location = new System.Drawing.Point(397, 61);
-            chkEquipmentUseThread.Name = "chkEquipmentUseThread";
-            chkEquipmentUseThread.Size = new System.Drawing.Size(63, 19);
-            chkEquipmentUseThread.TabIndex = 21;
-            chkEquipmentUseThread.Text = "Thread";
-            chkEquipmentUseThread.UseVisualStyleBackColor = true;
-            // 
-            // labelEquipmentPlanilha
-            // 
-            labelEquipmentPlanilha.AutoSize = true;
-            labelEquipmentPlanilha.Location = new System.Drawing.Point(8, 32);
-            labelEquipmentPlanilha.Name = "labelEquipmentPlanilha";
-            labelEquipmentPlanilha.Size = new System.Drawing.Size(49, 15);
-            labelEquipmentPlanilha.TabIndex = 12;
-            labelEquipmentPlanilha.Text = "Planilha";
-            // 
-            // txtEquipmentSpreadsheet
-            // 
-            txtEquipmentSpreadsheet.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            txtEquipmentSpreadsheet.Location = new System.Drawing.Point(80, 26);
-            txtEquipmentSpreadsheet.Name = "txtEquipmentSpreadsheet";
-            txtEquipmentSpreadsheet.Size = new System.Drawing.Size(616, 23);
-            txtEquipmentSpreadsheet.TabIndex = 11;
-            // 
-            // btnEquipmentSelectSpreadsheet
-            // 
-            btnEquipmentSelectSpreadsheet.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnEquipmentSelectSpreadsheet.Location = new System.Drawing.Point(702, 22);
-            btnEquipmentSelectSpreadsheet.Name = "btnEquipmentSelectSpreadsheet";
-            btnEquipmentSelectSpreadsheet.Size = new System.Drawing.Size(142, 28);
-            btnEquipmentSelectSpreadsheet.TabIndex = 10;
-            btnEquipmentSelectSpreadsheet.Text = "Escolher planilha";
-            btnEquipmentSelectSpreadsheet.UseVisualStyleBackColor = true;
-            btnEquipmentSelectSpreadsheet.Click += btnEquipmentSelectSpreadsheet_Click;
-            // 
-            // labelEquipmentDestino
-            // 
-            labelEquipmentDestino.AutoSize = true;
-            labelEquipmentDestino.Location = new System.Drawing.Point(8, 67);
-            labelEquipmentDestino.Name = "labelEquipmentDestino";
-            labelEquipmentDestino.Size = new System.Drawing.Size(62, 15);
-            labelEquipmentDestino.TabIndex = 9;
-            labelEquipmentDestino.Text = "Pasta base";
-            // 
-            // progressBarEquipment
-            // 
-            progressBarEquipment.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            progressBarEquipment.Location = new System.Drawing.Point(235, 519);
-            progressBarEquipment.Name = "progressBarEquipment";
-            progressBarEquipment.Size = new System.Drawing.Size(993, 34);
-            progressBarEquipment.TabIndex = 7;
-            // 
-            // btnEquipmentCreateFolders
-            // 
-            btnEquipmentCreateFolders.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            btnEquipmentCreateFolders.Location = new System.Drawing.Point(118, 519);
-            btnEquipmentCreateFolders.Name = "btnEquipmentCreateFolders";
-            btnEquipmentCreateFolders.Size = new System.Drawing.Size(111, 34);
-            btnEquipmentCreateFolders.TabIndex = 6;
-            btnEquipmentCreateFolders.Text = "Iniciar";
-            btnEquipmentCreateFolders.UseVisualStyleBackColor = true;
-            btnEquipmentCreateFolders.Click += btnEquipmentCreateFolders_Click;
-            // 
-            // btnEquipmentLoadGrid
-            // 
-            btnEquipmentLoadGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            btnEquipmentLoadGrid.Location = new System.Drawing.Point(8, 519);
-            btnEquipmentLoadGrid.Name = "btnEquipmentLoadGrid";
-            btnEquipmentLoadGrid.Size = new System.Drawing.Size(104, 34);
-            btnEquipmentLoadGrid.TabIndex = 5;
-            btnEquipmentLoadGrid.Text = "Carregar";
-            btnEquipmentLoadGrid.UseVisualStyleBackColor = true;
-            btnEquipmentLoadGrid.Click += btnEquipmentLoadGrid_Click;
-            // 
-            // btnEquipmentExportGrid
-            // 
-            btnEquipmentExportGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            btnEquipmentExportGrid.Location = new System.Drawing.Point(1234, 519);
-            btnEquipmentExportGrid.Name = "btnEquipmentExportGrid";
-            btnEquipmentExportGrid.Size = new System.Drawing.Size(121, 32);
-            btnEquipmentExportGrid.TabIndex = 14;
-            btnEquipmentExportGrid.Text = "Exportar Excel";
-            btnEquipmentExportGrid.UseVisualStyleBackColor = true;
-            btnEquipmentExportGrid.Click += btnEquipmentExportGrid_Click;
-            // 
-            // dataGridViewEquipment
-            // 
-            dataGridViewEquipment.AllowUserToAddRows = false;
-            dataGridViewEquipment.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            dataGridViewEquipment.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
-            dataGridViewEquipment.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
-            dataGridViewEquipment.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewEquipment.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { OrdemEquipment, OrigemEquipment, DestinoEquipment, SubEquipmentColumn, EquipEquipmentColumn, KmInicioEquipmentColumn, KmFimEquipmentColumn, StatusEquipmentColumn });
-            dataGridViewEquipment.Location = new System.Drawing.Point(8, 118);
-            dataGridViewEquipment.Name = "dataGridViewEquipment";
-            dataGridViewEquipment.RowHeadersWidth = 62;
-            dataGridViewEquipment.Size = new System.Drawing.Size(1347, 395);
-            dataGridViewEquipment.TabIndex = 4;
-            // 
-            // OrdemEquipment
-            // 
-            OrdemEquipment.HeaderText = "Ordem";
-            OrdemEquipment.Name = "OrdemEquipment";
-            OrdemEquipment.ReadOnly = true;
-            OrdemEquipment.Width = 69;
-            // 
-            // OrigemEquipment
-            // 
-            OrigemEquipment.HeaderText = "Origem";
-            OrigemEquipment.MinimumWidth = 8;
-            OrigemEquipment.Name = "OrigemEquipment";
-            OrigemEquipment.Width = 68;
-            // 
-            // DestinoEquipment
-            // 
-            DestinoEquipment.HeaderText = "Destino";
-            DestinoEquipment.MinimumWidth = 8;
-            DestinoEquipment.Name = "DestinoEquipment";
-            DestinoEquipment.Width = 69;
-            // 
-            // SubEquipmentColumn
-            // 
-            SubEquipmentColumn.HeaderText = "SUB";
-            SubEquipmentColumn.MinimumWidth = 8;
-            SubEquipmentColumn.Name = "SubEquipmentColumn";
-            SubEquipmentColumn.Width = 53;
-            // 
-            // EquipEquipmentColumn
-            // 
-            EquipEquipmentColumn.HeaderText = "EQUIP_INFRA";
-            EquipEquipmentColumn.MinimumWidth = 8;
-            EquipEquipmentColumn.Name = "EquipEquipmentColumn";
-            EquipEquipmentColumn.Width = 103;
-            // 
-            // KmInicioEquipmentColumn
-            // 
-            KmInicioEquipmentColumn.HeaderText = "KM INICIO";
-            KmInicioEquipmentColumn.MinimumWidth = 8;
-            KmInicioEquipmentColumn.Name = "KmInicioEquipmentColumn";
-            KmInicioEquipmentColumn.Width = 88;
-            // 
-            // KmFimEquipmentColumn
-            // 
-            KmFimEquipmentColumn.HeaderText = "KM FIM";
-            KmFimEquipmentColumn.MinimumWidth = 8;
-            KmFimEquipmentColumn.Name = "KmFimEquipmentColumn";
-            KmFimEquipmentColumn.Width = 73;
-            // 
-            // StatusEquipmentColumn
-            // 
-            StatusEquipmentColumn.HeaderText = "Status";
-            StatusEquipmentColumn.MinimumWidth = 8;
-            StatusEquipmentColumn.Name = "StatusEquipmentColumn";
-            StatusEquipmentColumn.Width = 62;
-            // 
-            // txtEquipmentDestinationFolder
-            // 
-            txtEquipmentDestinationFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            txtEquipmentDestinationFolder.Location = new System.Drawing.Point(80, 61);
-            txtEquipmentDestinationFolder.Name = "txtEquipmentDestinationFolder";
-            txtEquipmentDestinationFolder.Size = new System.Drawing.Size(616, 23);
-            txtEquipmentDestinationFolder.TabIndex = 2;
-            // 
-            // btnEquipmentSelectDestination
-            // 
-            btnEquipmentSelectDestination.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnEquipmentSelectDestination.Location = new System.Drawing.Point(702, 57);
-            btnEquipmentSelectDestination.Name = "btnEquipmentSelectDestination";
-            btnEquipmentSelectDestination.Size = new System.Drawing.Size(142, 28);
-            btnEquipmentSelectDestination.TabIndex = 1;
-            btnEquipmentSelectDestination.Text = "Escolher pasta";
-            btnEquipmentSelectDestination.UseVisualStyleBackColor = true;
-            btnEquipmentSelectDestination.Click += btnEquipmentSelectDestination_Click;
-            // 
             // groupBoxInfra
             // 
             groupBoxInfra.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
@@ -1114,6 +781,313 @@ namespace FileMoverApp
             btnInfraSelectDestination.UseVisualStyleBackColor = true;
             btnInfraSelectDestination.Click += btnInfraSelectDestination_Click;
             // 
+            // tabPageEquipment
+            // 
+            tabPageEquipment.Controls.Add(groupBoxEquipment);
+            tabPageEquipment.Controls.Add(labelEquipmentPlanilha);
+            tabPageEquipment.Controls.Add(txtEquipmentSpreadsheet);
+            tabPageEquipment.Controls.Add(btnEquipmentSelectSpreadsheet);
+            tabPageEquipment.Controls.Add(labelEquipmentDestino);
+            tabPageEquipment.Controls.Add(labelEquipmentAno);
+            tabPageEquipment.Controls.Add(txtEquipmentYear);
+            tabPageEquipment.Controls.Add(progressBarEquipment);
+            tabPageEquipment.Controls.Add(btnEquipmentCreateFolders);
+            tabPageEquipment.Controls.Add(btnEquipmentLoadGrid);
+            tabPageEquipment.Controls.Add(btnEquipmentExportGrid);
+            tabPageEquipment.Controls.Add(dataGridViewEquipment);
+            tabPageEquipment.Controls.Add(txtEquipmentDestinationFolder);
+            tabPageEquipment.Controls.Add(btnEquipmentSelectDestination);
+            tabPageEquipment.Location = new System.Drawing.Point(4, 24);
+            tabPageEquipment.Name = "tabPageEquipment";
+            tabPageEquipment.Padding = new System.Windows.Forms.Padding(3);
+            tabPageEquipment.Size = new System.Drawing.Size(1363, 559);
+            tabPageEquipment.TabIndex = 2;
+            tabPageEquipment.Text = "Criar pastas Equipamentos";
+            tabPageEquipment.UseVisualStyleBackColor = true;
+            // 
+            // groupBoxEquipment
+            // 
+            groupBoxEquipment.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            groupBoxEquipment.Controls.Add(labelEquipmentSub);
+            groupBoxEquipment.Controls.Add(labelEquipmentLimitPath);
+            groupBoxEquipment.Controls.Add(radioEquipmentIgnored);
+            groupBoxEquipment.Controls.Add(txtEquipmentSub);
+            groupBoxEquipment.Controls.Add(radioEquipmentCopied);
+            groupBoxEquipment.Controls.Add(txtEquipmentLimitPath);
+            groupBoxEquipment.Controls.Add(radioEquipmentAll);
+            groupBoxEquipment.Controls.Add(radioEquipmentPending);
+            groupBoxEquipment.Controls.Add(chkEquipmentUseThread);
+            groupBoxEquipment.Location = new System.Drawing.Point(850, 22);
+            groupBoxEquipment.Name = "groupBoxEquipment";
+            groupBoxEquipment.Size = new System.Drawing.Size(505, 90);
+            groupBoxEquipment.TabIndex = 13;
+            groupBoxEquipment.TabStop = false;
+            groupBoxEquipment.Text = "Filtros";
+            // 
+            // labelEquipmentSub
+            // 
+            labelEquipmentSub.AutoSize = true;
+            labelEquipmentSub.Location = new System.Drawing.Point(6, 14);
+            labelEquipmentSub.Name = "labelEquipmentSub";
+            labelEquipmentSub.Size = new System.Drawing.Size(27, 15);
+            labelEquipmentSub.TabIndex = 22;
+            labelEquipmentSub.Text = "Sub";
+            // 
+            // labelEquipmentLimitPath
+            // 
+            labelEquipmentLimitPath.AutoSize = true;
+            labelEquipmentLimitPath.Location = new System.Drawing.Point(188, 14);
+            labelEquipmentLimitPath.Name = "labelEquipmentLimitPath";
+            labelEquipmentLimitPath.Size = new System.Drawing.Size(92, 15);
+            labelEquipmentLimitPath.TabIndex = 20;
+            labelEquipmentLimitPath.Text = "Limite de pastas";
+            // 
+            // radioEquipmentIgnored
+            // 
+            radioEquipmentIgnored.AutoSize = true;
+            radioEquipmentIgnored.Location = new System.Drawing.Point(313, 61);
+            radioEquipmentIgnored.Name = "radioEquipmentIgnored";
+            radioEquipmentIgnored.Size = new System.Drawing.Size(78, 19);
+            radioEquipmentIgnored.TabIndex = 16;
+            radioEquipmentIgnored.Text = "Ignorados";
+            radioEquipmentIgnored.UseVisualStyleBackColor = true;
+            // 
+            // txtEquipmentSub
+            // 
+            txtEquipmentSub.Location = new System.Drawing.Point(6, 32);
+            txtEquipmentSub.Name = "txtEquipmentSub";
+            txtEquipmentSub.Size = new System.Drawing.Size(176, 23);
+            txtEquipmentSub.TabIndex = 17;
+            // 
+            // radioEquipmentCopied
+            // 
+            radioEquipmentCopied.AutoSize = true;
+            radioEquipmentCopied.Location = new System.Drawing.Point(206, 61);
+            radioEquipmentCopied.Name = "radioEquipmentCopied";
+            radioEquipmentCopied.Size = new System.Drawing.Size(75, 19);
+            radioEquipmentCopied.TabIndex = 15;
+            radioEquipmentCopied.Text = "Copiados";
+            radioEquipmentCopied.UseVisualStyleBackColor = true;
+            // 
+            // txtEquipmentLimitPath
+            // 
+            txtEquipmentLimitPath.Location = new System.Drawing.Point(188, 32);
+            txtEquipmentLimitPath.Name = "txtEquipmentLimitPath";
+            txtEquipmentLimitPath.Size = new System.Drawing.Size(140, 23);
+            txtEquipmentLimitPath.TabIndex = 9;
+            // 
+            // radioEquipmentAll
+            // 
+            radioEquipmentAll.AutoSize = true;
+            radioEquipmentAll.Checked = true;
+            radioEquipmentAll.Location = new System.Drawing.Point(6, 61);
+            radioEquipmentAll.Name = "radioEquipmentAll";
+            radioEquipmentAll.Size = new System.Drawing.Size(57, 19);
+            radioEquipmentAll.TabIndex = 13;
+            radioEquipmentAll.TabStop = true;
+            radioEquipmentAll.Text = "Todos";
+            radioEquipmentAll.UseVisualStyleBackColor = true;
+            // 
+            // radioEquipmentPending
+            // 
+            radioEquipmentPending.AutoSize = true;
+            radioEquipmentPending.Location = new System.Drawing.Point(92, 61);
+            radioEquipmentPending.Name = "radioEquipmentPending";
+            radioEquipmentPending.Size = new System.Drawing.Size(80, 19);
+            radioEquipmentPending.TabIndex = 14;
+            radioEquipmentPending.Text = "Pendentes";
+            radioEquipmentPending.UseVisualStyleBackColor = true;
+            // 
+            // chkEquipmentUseThread
+            // 
+            chkEquipmentUseThread.AutoSize = true;
+            chkEquipmentUseThread.Checked = true;
+            chkEquipmentUseThread.CheckState = System.Windows.Forms.CheckState.Checked;
+            chkEquipmentUseThread.Location = new System.Drawing.Point(397, 61);
+            chkEquipmentUseThread.Name = "chkEquipmentUseThread";
+            chkEquipmentUseThread.Size = new System.Drawing.Size(63, 19);
+            chkEquipmentUseThread.TabIndex = 21;
+            chkEquipmentUseThread.Text = "Thread";
+            chkEquipmentUseThread.UseVisualStyleBackColor = true;
+            // 
+            // labelEquipmentPlanilha
+            // 
+            labelEquipmentPlanilha.AutoSize = true;
+            labelEquipmentPlanilha.Location = new System.Drawing.Point(8, 32);
+            labelEquipmentPlanilha.Name = "labelEquipmentPlanilha";
+            labelEquipmentPlanilha.Size = new System.Drawing.Size(49, 15);
+            labelEquipmentPlanilha.TabIndex = 12;
+            labelEquipmentPlanilha.Text = "Planilha";
+            // 
+            // txtEquipmentSpreadsheet
+            // 
+            txtEquipmentSpreadsheet.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            txtEquipmentSpreadsheet.Location = new System.Drawing.Point(80, 26);
+            txtEquipmentSpreadsheet.Name = "txtEquipmentSpreadsheet";
+            txtEquipmentSpreadsheet.Size = new System.Drawing.Size(616, 23);
+            txtEquipmentSpreadsheet.TabIndex = 11;
+            // 
+            // btnEquipmentSelectSpreadsheet
+            // 
+            btnEquipmentSelectSpreadsheet.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            btnEquipmentSelectSpreadsheet.Location = new System.Drawing.Point(702, 25);
+            btnEquipmentSelectSpreadsheet.Name = "btnEquipmentSelectSpreadsheet";
+            btnEquipmentSelectSpreadsheet.Size = new System.Drawing.Size(142, 28);
+            btnEquipmentSelectSpreadsheet.TabIndex = 10;
+            btnEquipmentSelectSpreadsheet.Text = "Escolher planilha";
+            btnEquipmentSelectSpreadsheet.UseVisualStyleBackColor = true;
+            btnEquipmentSelectSpreadsheet.Click += btnEquipmentSelectSpreadsheet_Click;
+            // 
+            // labelEquipmentDestino
+            // 
+            labelEquipmentDestino.AutoSize = true;
+            labelEquipmentDestino.Location = new System.Drawing.Point(8, 67);
+            labelEquipmentDestino.Name = "labelEquipmentDestino";
+            labelEquipmentDestino.Size = new System.Drawing.Size(62, 15);
+            labelEquipmentDestino.TabIndex = 9;
+            labelEquipmentDestino.Text = "Pasta base";
+            // 
+            // labelEquipmentAno
+            // 
+            labelEquipmentAno.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            labelEquipmentAno.AutoSize = true;
+            labelEquipmentAno.Location = new System.Drawing.Point(555, 67);
+            labelEquipmentAno.Name = "labelEquipmentAno";
+            labelEquipmentAno.Size = new System.Drawing.Size(29, 15);
+            labelEquipmentAno.TabIndex = 15;
+            labelEquipmentAno.Text = "Ano";
+            // 
+            // txtEquipmentYear
+            // 
+            txtEquipmentYear.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            txtEquipmentYear.Location = new System.Drawing.Point(601, 64);
+            txtEquipmentYear.Name = "txtEquipmentYear";
+            txtEquipmentYear.Size = new System.Drawing.Size(80, 23);
+            txtEquipmentYear.TabIndex = 16;
+            // 
+            // progressBarEquipment
+            // 
+            progressBarEquipment.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            progressBarEquipment.Location = new System.Drawing.Point(235, 519);
+            progressBarEquipment.Name = "progressBarEquipment";
+            progressBarEquipment.Size = new System.Drawing.Size(993, 34);
+            progressBarEquipment.TabIndex = 7;
+            // 
+            // btnEquipmentCreateFolders
+            // 
+            btnEquipmentCreateFolders.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            btnEquipmentCreateFolders.Location = new System.Drawing.Point(118, 519);
+            btnEquipmentCreateFolders.Name = "btnEquipmentCreateFolders";
+            btnEquipmentCreateFolders.Size = new System.Drawing.Size(111, 34);
+            btnEquipmentCreateFolders.TabIndex = 6;
+            btnEquipmentCreateFolders.Text = "Iniciar";
+            btnEquipmentCreateFolders.UseVisualStyleBackColor = true;
+            btnEquipmentCreateFolders.Click += btnEquipmentCreateFolders_Click;
+            // 
+            // btnEquipmentLoadGrid
+            // 
+            btnEquipmentLoadGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            btnEquipmentLoadGrid.Location = new System.Drawing.Point(8, 519);
+            btnEquipmentLoadGrid.Name = "btnEquipmentLoadGrid";
+            btnEquipmentLoadGrid.Size = new System.Drawing.Size(104, 34);
+            btnEquipmentLoadGrid.TabIndex = 5;
+            btnEquipmentLoadGrid.Text = "Carregar";
+            btnEquipmentLoadGrid.UseVisualStyleBackColor = true;
+            btnEquipmentLoadGrid.Click += btnEquipmentLoadGrid_Click;
+            // 
+            // btnEquipmentExportGrid
+            // 
+            btnEquipmentExportGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            btnEquipmentExportGrid.Location = new System.Drawing.Point(1234, 519);
+            btnEquipmentExportGrid.Name = "btnEquipmentExportGrid";
+            btnEquipmentExportGrid.Size = new System.Drawing.Size(121, 32);
+            btnEquipmentExportGrid.TabIndex = 14;
+            btnEquipmentExportGrid.Text = "Exportar Excel";
+            btnEquipmentExportGrid.UseVisualStyleBackColor = true;
+            btnEquipmentExportGrid.Click += btnEquipmentExportGrid_Click;
+            // 
+            // dataGridViewEquipment
+            // 
+            dataGridViewEquipment.AllowUserToAddRows = false;
+            dataGridViewEquipment.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            dataGridViewEquipment.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            dataGridViewEquipment.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
+            dataGridViewEquipment.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewEquipment.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { OrdemEquipment, DestinoEquipment, SubEquipmentColumn, EquipEquipmentColumn, KmInicioEquipmentColumn, KmFimEquipmentColumn, StatusEquipmentColumn });
+            dataGridViewEquipment.Location = new System.Drawing.Point(8, 118);
+            dataGridViewEquipment.Name = "dataGridViewEquipment";
+            dataGridViewEquipment.RowHeadersWidth = 62;
+            dataGridViewEquipment.Size = new System.Drawing.Size(1347, 395);
+            dataGridViewEquipment.TabIndex = 4;
+            // 
+            // OrdemEquipment
+            // 
+            OrdemEquipment.HeaderText = "Ordem";
+            OrdemEquipment.Name = "OrdemEquipment";
+            OrdemEquipment.ReadOnly = true;
+            OrdemEquipment.Width = 69;
+            // 
+            // DestinoEquipment
+            // 
+            DestinoEquipment.HeaderText = "Destino";
+            DestinoEquipment.MinimumWidth = 8;
+            DestinoEquipment.Name = "DestinoEquipment";
+            DestinoEquipment.Width = 72;
+            // 
+            // SubEquipmentColumn
+            // 
+            SubEquipmentColumn.HeaderText = "SUB";
+            SubEquipmentColumn.MinimumWidth = 8;
+            SubEquipmentColumn.Name = "SubEquipmentColumn";
+            SubEquipmentColumn.Width = 53;
+            // 
+            // EquipEquipmentColumn
+            // 
+            EquipEquipmentColumn.HeaderText = "EQUIP_INFRA";
+            EquipEquipmentColumn.MinimumWidth = 8;
+            EquipEquipmentColumn.Name = "EquipEquipmentColumn";
+            EquipEquipmentColumn.Width = 103;
+            // 
+            // KmInicioEquipmentColumn
+            // 
+            KmInicioEquipmentColumn.HeaderText = "KM INICIO";
+            KmInicioEquipmentColumn.MinimumWidth = 8;
+            KmInicioEquipmentColumn.Name = "KmInicioEquipmentColumn";
+            KmInicioEquipmentColumn.Width = 88;
+            // 
+            // KmFimEquipmentColumn
+            // 
+            KmFimEquipmentColumn.HeaderText = "KM FIM";
+            KmFimEquipmentColumn.MinimumWidth = 8;
+            KmFimEquipmentColumn.Name = "KmFimEquipmentColumn";
+            KmFimEquipmentColumn.Width = 73;
+            // 
+            // StatusEquipmentColumn
+            // 
+            StatusEquipmentColumn.HeaderText = "Status";
+            StatusEquipmentColumn.MinimumWidth = 8;
+            StatusEquipmentColumn.Name = "StatusEquipmentColumn";
+            StatusEquipmentColumn.Width = 64;
+            // 
+            // txtEquipmentDestinationFolder
+            // 
+            txtEquipmentDestinationFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            txtEquipmentDestinationFolder.Location = new System.Drawing.Point(80, 61);
+            txtEquipmentDestinationFolder.Name = "txtEquipmentDestinationFolder";
+            txtEquipmentDestinationFolder.Size = new System.Drawing.Size(469, 23);
+            txtEquipmentDestinationFolder.TabIndex = 2;
+            // 
+            // btnEquipmentSelectDestination
+            // 
+            btnEquipmentSelectDestination.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            btnEquipmentSelectDestination.Location = new System.Drawing.Point(702, 61);
+            btnEquipmentSelectDestination.Name = "btnEquipmentSelectDestination";
+            btnEquipmentSelectDestination.Size = new System.Drawing.Size(142, 28);
+            btnEquipmentSelectDestination.TabIndex = 1;
+            btnEquipmentSelectDestination.Text = "Escolher pasta";
+            btnEquipmentSelectDestination.UseVisualStyleBackColor = true;
+            btnEquipmentSelectDestination.Click += btnEquipmentSelectDestination_Click;
+            // 
             // Form1
             // 
             ClientSize = new System.Drawing.Size(1371, 587);
@@ -1131,14 +1105,14 @@ namespace FileMoverApp
             ((System.ComponentModel.ISupportInitialize)dataGridView).EndInit();
             tabPageInfra.ResumeLayout(false);
             tabPageInfra.PerformLayout();
+            groupBoxInfra.ResumeLayout(false);
+            groupBoxInfra.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridViewInfra).EndInit();
             tabPageEquipment.ResumeLayout(false);
             tabPageEquipment.PerformLayout();
             groupBoxEquipment.ResumeLayout(false);
             groupBoxEquipment.PerformLayout();
-            groupBoxInfra.ResumeLayout(false);
-            groupBoxInfra.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewEquipment).EndInit();
-            ((System.ComponentModel.ISupportInitialize)dataGridViewInfra).EndInit();
             ResumeLayout(false);
         }
 
@@ -1179,12 +1153,8 @@ namespace FileMoverApp
         private System.Windows.Forms.GroupBox groupBoxEquipment;
         private System.Windows.Forms.Label labelEquipmentSub;
         private System.Windows.Forms.Label labelEquipmentLimitPath;
-        private System.Windows.Forms.Label labelEquipmentLimitFile;
-        private System.Windows.Forms.Label labelEquipmentYearFilter;
         private System.Windows.Forms.RadioButton radioEquipmentIgnored;
         private System.Windows.Forms.TextBox txtEquipmentSub;
-        private System.Windows.Forms.TextBox txtEquipmentLimitFile;
-        private System.Windows.Forms.TextBox txtEquipmentYear;
         private System.Windows.Forms.RadioButton radioEquipmentCopied;
         private System.Windows.Forms.TextBox txtEquipmentLimitPath;
         private System.Windows.Forms.RadioButton radioEquipmentAll;
@@ -1194,13 +1164,14 @@ namespace FileMoverApp
         private System.Windows.Forms.TextBox txtEquipmentSpreadsheet;
         private System.Windows.Forms.Button btnEquipmentSelectSpreadsheet;
         private System.Windows.Forms.Label labelEquipmentDestino;
+        private System.Windows.Forms.Label labelEquipmentAno;
+        private System.Windows.Forms.TextBox txtEquipmentYear;
         private System.Windows.Forms.ProgressBar progressBarEquipment;
         private System.Windows.Forms.Button btnEquipmentCreateFolders;
         private System.Windows.Forms.Button btnEquipmentLoadGrid;
         private System.Windows.Forms.Button btnEquipmentExportGrid;
         private System.Windows.Forms.DataGridView dataGridViewEquipment;
         private System.Windows.Forms.DataGridViewTextBoxColumn OrdemEquipment;
-        private System.Windows.Forms.DataGridViewTextBoxColumn OrigemEquipment;
         private System.Windows.Forms.DataGridViewTextBoxColumn DestinoEquipment;
         private System.Windows.Forms.DataGridViewTextBoxColumn SubEquipmentColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn EquipEquipmentColumn;
