@@ -18,6 +18,7 @@ namespace FileMoverApp
         {
             tabControlMain = new System.Windows.Forms.TabControl();
             tabPageDefault = new System.Windows.Forms.TabPage();
+            btnExportExcel = new System.Windows.Forms.Button();
             btnExportGrid = new System.Windows.Forms.Button();
             groupBox1 = new System.Windows.Forms.GroupBox();
             labelSub = new System.Windows.Forms.Label();
@@ -49,10 +50,12 @@ namespace FileMoverApp
             btnSelectSource = new System.Windows.Forms.Button();
             tabPageInfra = new System.Windows.Forms.TabPage();
             groupBoxInfra = new System.Windows.Forms.GroupBox();
+            labelInfraSub = new System.Windows.Forms.Label();
             labelInfraLimitPath = new System.Windows.Forms.Label();
             labelInfraLimitFile = new System.Windows.Forms.Label();
             labelInfraYearFilter = new System.Windows.Forms.Label();
             radioInfraIgnored = new System.Windows.Forms.RadioButton();
+            txtInfraSub = new System.Windows.Forms.TextBox();
             txtInfraLimitFile = new System.Windows.Forms.TextBox();
             txtInfraYear = new System.Windows.Forms.TextBox();
             radioInfraCopied = new System.Windows.Forms.RadioButton();
@@ -67,6 +70,7 @@ namespace FileMoverApp
             progressBarInfra = new System.Windows.Forms.ProgressBar();
             btnInfraMoveFiles = new System.Windows.Forms.Button();
             btnInfraLoadGrid = new System.Windows.Forms.Button();
+            btnInfraExportGrid = new System.Windows.Forms.Button();
             dataGridViewInfra = new System.Windows.Forms.DataGridView();
             OrdemInfra = new System.Windows.Forms.DataGridViewTextBoxColumn();
             OrigemInfra = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -78,8 +82,6 @@ namespace FileMoverApp
             SizeInfraColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             txtInfraDestinationFolder = new System.Windows.Forms.TextBox();
             btnInfraSelectDestination = new System.Windows.Forms.Button();
-            labelInfraSub = new System.Windows.Forms.Label();
-            txtInfraSub = new System.Windows.Forms.TextBox();
             tabControlMain.SuspendLayout();
             tabPageDefault.SuspendLayout();
             groupBox1.SuspendLayout();
@@ -102,6 +104,7 @@ namespace FileMoverApp
             // 
             // tabPageDefault
             // 
+            tabPageDefault.Controls.Add(btnExportExcel);
             tabPageDefault.Controls.Add(btnExportGrid);
             tabPageDefault.Controls.Add(groupBox1);
             tabPageDefault.Controls.Add(label2);
@@ -121,6 +124,17 @@ namespace FileMoverApp
             tabPageDefault.TabIndex = 0;
             tabPageDefault.Text = "Move files";
             tabPageDefault.UseVisualStyleBackColor = true;
+            // 
+            // btnExportExcel
+            // 
+            btnExportExcel.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            btnExportExcel.Location = new System.Drawing.Point(1107, 519);
+            btnExportExcel.Name = "btnExportExcel";
+            btnExportExcel.Size = new System.Drawing.Size(121, 32);
+            btnExportExcel.TabIndex = 15;
+            btnExportExcel.Text = "Exportar Excel";
+            btnExportExcel.UseVisualStyleBackColor = true;
+            btnExportExcel.Click += btnExportExcel_Click;
             // 
             // btnExportGrid
             // 
@@ -188,7 +202,7 @@ namespace FileMoverApp
             label3.AutoSize = true;
             label3.Location = new System.Drawing.Point(6, 14);
             label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(28, 15);
+            label3.Size = new System.Drawing.Size(29, 15);
             label3.TabIndex = 14;
             label3.Text = "Ano";
             // 
@@ -297,7 +311,7 @@ namespace FileMoverApp
             progressBar.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             progressBar.Location = new System.Drawing.Point(235, 519);
             progressBar.Name = "progressBar";
-            progressBar.Size = new System.Drawing.Size(993, 34);
+            progressBar.Size = new System.Drawing.Size(866, 34);
             progressBar.TabIndex = 7;
             // 
             // btnMoveFiles
@@ -412,6 +426,7 @@ namespace FileMoverApp
             tabPageInfra.Controls.Add(progressBarInfra);
             tabPageInfra.Controls.Add(btnInfraMoveFiles);
             tabPageInfra.Controls.Add(btnInfraLoadGrid);
+            tabPageInfra.Controls.Add(btnInfraExportGrid);
             tabPageInfra.Controls.Add(dataGridViewInfra);
             tabPageInfra.Controls.Add(txtInfraDestinationFolder);
             tabPageInfra.Controls.Add(btnInfraSelectDestination);
@@ -478,7 +493,7 @@ namespace FileMoverApp
             labelInfraYearFilter.AutoSize = true;
             labelInfraYearFilter.Location = new System.Drawing.Point(6, 14);
             labelInfraYearFilter.Name = "labelInfraYearFilter";
-            labelInfraYearFilter.Size = new System.Drawing.Size(28, 15);
+            labelInfraYearFilter.Size = new System.Drawing.Size(29, 15);
             labelInfraYearFilter.TabIndex = 14;
             labelInfraYearFilter.Text = "Ano";
             // 
@@ -606,7 +621,7 @@ namespace FileMoverApp
             progressBarInfra.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             progressBarInfra.Location = new System.Drawing.Point(235, 519);
             progressBarInfra.Name = "progressBarInfra";
-            progressBarInfra.Size = new System.Drawing.Size(1120, 34);
+            progressBarInfra.Size = new System.Drawing.Size(993, 34);
             progressBarInfra.TabIndex = 7;
             // 
             // btnInfraMoveFiles
@@ -630,6 +645,17 @@ namespace FileMoverApp
             btnInfraLoadGrid.Text = "Carregar";
             btnInfraLoadGrid.UseVisualStyleBackColor = true;
             btnInfraLoadGrid.Click += btnInfraLoadGrid_Click;
+            // 
+            // btnInfraExportGrid
+            // 
+            btnInfraExportGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            btnInfraExportGrid.Location = new System.Drawing.Point(1234, 519);
+            btnInfraExportGrid.Name = "btnInfraExportGrid";
+            btnInfraExportGrid.Size = new System.Drawing.Size(121, 32);
+            btnInfraExportGrid.TabIndex = 14;
+            btnInfraExportGrid.Text = "Exportar Excel";
+            btnInfraExportGrid.UseVisualStyleBackColor = true;
+            btnInfraExportGrid.Click += btnInfraExportGrid_Click;
             // 
             // dataGridViewInfra
             // 
@@ -773,6 +799,7 @@ namespace FileMoverApp
         private System.Windows.Forms.DataGridViewTextBoxColumn Origem;
         private System.Windows.Forms.DataGridViewTextBoxColumn Destino;
         private System.Windows.Forms.DataGridViewTextBoxColumn SizeColumn;
+        private System.Windows.Forms.Button btnExportExcel;
         private System.Windows.Forms.Button btnExportGrid;
         private System.Windows.Forms.TabPage tabPageInfra;
         private System.Windows.Forms.Label labelInfraPlanilha;
@@ -796,6 +823,7 @@ namespace FileMoverApp
         private System.Windows.Forms.ProgressBar progressBarInfra;
         private System.Windows.Forms.Button btnInfraMoveFiles;
         private System.Windows.Forms.Button btnInfraLoadGrid;
+        private System.Windows.Forms.Button btnInfraExportGrid;
         private System.Windows.Forms.DataGridView dataGridViewInfra;
         private System.Windows.Forms.TextBox txtInfraDestinationFolder;
         private System.Windows.Forms.Button btnInfraSelectDestination;

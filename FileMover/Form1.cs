@@ -1,5 +1,7 @@
+using ClosedXML.Excel;
 using FileMover;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -789,6 +791,106 @@ namespace FileMoverApp
 
             var reportForm = new Report();
             reportForm.ShowDialog();
+        }
+
+        private void btnExportExcel_Click(object sender, EventArgs e)
+        {
+            ExportGridToExcel(dataGridView, "MoveFiles");
+        }
+
+        private void btnInfraExportGrid_Click(object sender, EventArgs e)
+        {
+            ExportGridToExcel(dataGridViewInfra, "Infra");
+        }
+
+        private void ExportGridToExcel(DataGridView grid, string sheetName)
+        {
+            if (grid.Rows.Count == 0)
+            {
+                MessageBox.Show("O grid esta vazio. Carregue os dados antes de exportar.", "Atencao",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            SaveLastValues();
+            string exportPath = BuildExcelExportPath(sheetName);
+
+            try
+            {
+                using XLWorkbook workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add(SanitizeWorksheetName(sheetName));
+                List<DataGridViewColumn> visibleColumns = grid.Columns
+                    .Cast<DataGridViewColumn>()
+                    .Where(column => column.Visible)
+                    .OrderBy(column => column.DisplayIndex)
+                    .ToList();
+
+                for (int columnIndex = 0; columnIndex < visibleColumns.Count; columnIndex++)
+                {
+                    DataGridViewColumn column = visibleColumns[columnIndex];
+                    var headerCell = worksheet.Cell(1, columnIndex + 1);
+                    headerCell.Value = column.HeaderText;
+                    headerCell.Style.Font.Bold = true;
+                    headerCell.Style.Fill.BackgroundColor = XLColor.LightGray;
+                }
+
+                for (int rowIndex = 0; rowIndex < grid.Rows.Count; rowIndex++)
+                {
+                    DataGridViewRow gridRow = grid.Rows[rowIndex];
+
+                    for (int columnIndex = 0; columnIndex < visibleColumns.Count; columnIndex++)
+                    {
+                        DataGridViewColumn column = visibleColumns[columnIndex];
+                        var worksheetCell = worksheet.Cell(rowIndex + 2, columnIndex + 1);
+                        object value = gridRow.Cells[column.Index].Value;
+                        worksheetCell.Value = value?.ToString() ?? string.Empty;
+                    }
+
+                    Color rowColor = gridRow.DefaultCellStyle.BackColor;
+                    if (!rowColor.IsEmpty)
+                    {
+                        var range = worksheet.Range(rowIndex + 2, 1, rowIndex + 2, visibleColumns.Count);
+                        range.Style.Fill.BackgroundColor = XLColor.FromColor(rowColor);
+                    }
+                }
+
+                worksheet.Columns().AdjustToContents();
+                workbook.SaveAs(exportPath);
+
+                MessageBox.Show($"Planilha exportada com sucesso:\r\n{exportPath}", "Exportacao",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro ao exportar planilha: {ex.Message}", "Atencao",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private static string BuildExcelExportPath(string sheetName)
+        {
+            Directory.CreateDirectory(@"c:\temp");
+            return $@"c:\temp\FileMover_{sheetName}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+        }
+
+        private static string SanitizeWorksheetName(string sheetName)
+        {
+            char[] invalidChars = { ':', '\\', '/', '?', '*', '[', ']' };
+            string sanitized = sheetName ?? "Planilha";
+
+            foreach (char invalidChar in invalidChars)
+            {
+                sanitized = sanitized.Replace(invalidChar, '_');
+            }
+
+            if (string.IsNullOrWhiteSpace(sanitized))
+            {
+                return "Planilha";
+            }
+
+            return sanitized.Length > 31
+                ? sanitized.Substring(0, 31)
+                : sanitized;
         }
 
         private static void RemoveEmptyDirectories(string directoryPath)
