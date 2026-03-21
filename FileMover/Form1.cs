@@ -654,14 +654,6 @@ namespace FileMoverApp
                 string reportPath = string.Empty;
                 bool copiedAny = false;
                 int changedFilesCount = 0;
-                string backupRoot = moveInsteadOfCopy
-                    ? Path.Combine(@"c:\temp", $"FileMover_RenameBackup_{DateTime.Now:yyyyMMdd_HHmmss}")
-                    : string.Empty;
-
-                if (moveInsteadOfCopy)
-                {
-                    Directory.CreateDirectory(backupRoot);
-                }
 
                 try
                 {
@@ -683,7 +675,6 @@ namespace FileMoverApp
 
                             if (moveInsteadOfCopy)
                             {
-                                BackupFileToTemp(sourceFile, destinationRoot, backupRoot);
                                 File.Move(sourceFile, destFile);
                                 RemoveEmptyDirectories(Path.GetDirectoryName(sourceFile));
                             }
@@ -798,35 +789,6 @@ namespace FileMoverApp
 
             var reportForm = new Report();
             reportForm.ShowDialog();
-        }
-
-        private static void BackupFileToTemp(string sourceFile, string destinationRoot, string backupRoot)
-        {
-            string relativePath;
-
-            try
-            {
-                relativePath = Path.GetRelativePath(destinationRoot, sourceFile);
-            }
-            catch
-            {
-                relativePath = Path.GetFileName(sourceFile);
-            }
-
-            if (string.IsNullOrWhiteSpace(relativePath) || relativePath.StartsWith(".."))
-            {
-                relativePath = Path.GetFileName(sourceFile);
-            }
-
-            string backupFile = Path.Combine(backupRoot, relativePath);
-            string backupDir = Path.GetDirectoryName(backupFile);
-
-            if (!string.IsNullOrWhiteSpace(backupDir) && !Directory.Exists(backupDir))
-            {
-                Directory.CreateDirectory(backupDir);
-            }
-
-            File.Copy(sourceFile, backupFile, true);
         }
 
         private static void RemoveEmptyDirectories(string directoryPath)
