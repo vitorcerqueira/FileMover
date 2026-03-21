@@ -426,6 +426,7 @@ namespace FileMoverApp
                 string[] relativeParts = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 string sourceSub = Service.ExtractSub(relativeParts, 0);
                 string kmFolder = Service.ExtractKm(relativeParts, 0);
+                string currentEquipInfra = GetCurrentInfraFolder(relativeParts);
                 string ano = Service.ExtractYear(relativeParts, 0);
                 string destination = "";
                 string sub = "";
@@ -435,9 +436,18 @@ namespace FileMoverApp
                 bool achou = false;
                 bool valido = false;
 
-                if (!string.IsNullOrWhiteSpace(sourceSub) &&
-                    !string.IsNullOrWhiteSpace(kmFolder) &&
-                    Service.TryFindInfraKmRange(sourceSub, kmFolder, ranges, out Service.InfraKmRange range))
+                Service.InfraKmRange range = null;
+
+                bool encontrouRangePorKm = !string.IsNullOrWhiteSpace(sourceSub) &&
+                                           !string.IsNullOrWhiteSpace(kmFolder) &&
+                                           Service.TryFindInfraKmRange(sourceSub, kmFolder, ranges, out range);
+
+                bool encontrouRangePorEquip = !encontrouRangePorKm &&
+                                              !string.IsNullOrWhiteSpace(sourceSub) &&
+                                              !string.IsNullOrWhiteSpace(currentEquipInfra) &&
+                                              Service.TryFindInfraRangeByEquip(sourceSub, currentEquipInfra, ranges, out range);
+
+                if (encontrouRangePorKm || encontrouRangePorEquip)
                 {
                     sub = range.Sub;
                     equipInfra = range.EquipInfra;
@@ -447,7 +457,8 @@ namespace FileMoverApp
 
                     for (int i = 0; i < destinationParts.Length; i++)
                     {
-                        if (destinationParts[i].StartsWith("km", StringComparison.OrdinalIgnoreCase))
+                        if (destinationParts[i].StartsWith("km", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(SanitizePathSegment(destinationParts[i]), SanitizePathSegment(currentEquipInfra), StringComparison.OrdinalIgnoreCase))
                         {
                             destinationParts[i] = SanitizePathSegment(equipInfra);
                             break;
@@ -542,6 +553,24 @@ namespace FileMoverApp
         private static string FormatInfraKm(double value)
         {
             return value.ToString("0.###");
+        }
+
+        private static string GetCurrentInfraFolder(string[] relativeParts)
+        {
+            for (int i = 0; i < relativeParts.Length; i++)
+            {
+                if (relativeParts[i].StartsWith("km", StringComparison.OrdinalIgnoreCase))
+                {
+                    return string.Empty;
+                }
+
+                if (i > 0 && relativeParts[i].Contains("-"))
+                {
+                    return relativeParts[i];
+                }
+            }
+
+            return string.Empty;
         }
 
         private static void AddRowToGrid(DataGridView grid, int linha, string origem, string destino, string tamanho, bool achou, bool ignorar)

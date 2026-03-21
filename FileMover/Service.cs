@@ -482,6 +482,31 @@ namespace FileMover
             return true;
         }
 
+        public static bool TryFindInfraRangeByEquip(string sub, string equipInfraName, IEnumerable<InfraKmRange> ranges, out InfraKmRange range)
+        {
+            range = null;
+
+            string normalizedSub = NormalizeSubValue(sub);
+            string normalizedEquip = NormalizeInfraEquipValue(equipInfraName);
+
+            if (string.IsNullOrWhiteSpace(normalizedSub) || string.IsNullOrWhiteSpace(normalizedEquip))
+            {
+                return false;
+            }
+
+            var match = ranges.FirstOrDefault(item =>
+                NormalizeSubValue(item.Sub).Equals(normalizedSub, StringComparison.OrdinalIgnoreCase) &&
+                NormalizeInfraEquipValue(item.EquipInfra).Equals(normalizedEquip, StringComparison.OrdinalIgnoreCase));
+
+            if (match == null)
+            {
+                return false;
+            }
+
+            range = match;
+            return true;
+        }
+
         public static bool TryParseKilometerValue(string input, out double value)
         {
             value = 0;
@@ -576,6 +601,19 @@ namespace FileMover
             }
 
             return Regex.Replace(trimmed, @"\s+", " ");
+        }
+
+        private static string NormalizeInfraEquipValue(string equipInfra)
+        {
+            if (string.IsNullOrWhiteSpace(equipInfra))
+            {
+                return string.Empty;
+            }
+
+            return equipInfra
+                .Replace("/", "-")
+                .Trim()
+                .ToUpperInvariant();
         }
     }
 }
