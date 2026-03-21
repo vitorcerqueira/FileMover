@@ -3,6 +3,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
@@ -650,17 +651,12 @@ namespace FileMoverApp
                 });
 
                 StreamWriter writer = null;
-                string auxPath = "";
+                string reportPath = string.Empty;
                 bool copiedAny = false;
+                int changedFilesCount = 0;
                 string backupRoot = moveInsteadOfCopy
                     ? Path.Combine(@"c:\temp", $"FileMover_RenameBackup_{DateTime.Now:yyyyMMdd_HHmmss}")
                     : string.Empty;
-
-                if (generateReport)
-                {
-                    Directory.CreateDirectory(@"c:\temp");
-                    writer = new StreamWriter(@$"c:\temp\Relatorio_FileMover_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
-                }
 
                 if (moveInsteadOfCopy)
                 {
@@ -697,19 +693,17 @@ namespace FileMoverApp
                             }
 
                             copiedAny = true;
+                            changedFilesCount++;
 
-                            if (writer != null)
+                            if (generateReport)
                             {
-                                string path = Service.GetPathUntil2(sourceFile, "sub");
-
-                                if (auxPath != path)
+                                if (writer == null)
                                 {
-                                    auxPath = path;
-                                    writer.WriteLine(path);
+                                    reportPath = BuildReportPath(moveInsteadOfCopy);
+                                    writer = CreateReportWriter(reportPath, moveInsteadOfCopy, destinationRoot);
                                 }
 
-                                string km = Service.GetPathUntil(sourceFile, "km");
-                                writer.WriteLine(km.PadLeft(5));
+                                WriteReportEntry(writer, changedFilesCount, sourceFile, destFile);
                             }
                         }
 
@@ -719,11 +713,18 @@ namespace FileMoverApp
                 }
                 finally
                 {
+                    if (writer != null)
+                    {
+                        WriteReportSummary(writer, changedFilesCount);
+                    }
+
                     writer?.Close();
                 }
 
                 MessageBox.Show(
-                    copiedAny ? "Arquivos movidos com sucesso!" : "Não foi encontrado arquivos para copiar!",
+                    copiedAny
+                        ? BuildSuccessMessage(moveInsteadOfCopy, reportPath)
+                        : "Não foi encontrado arquivos para copiar!",
                     "Atenção",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Exclamation);
@@ -740,6 +741,55 @@ namespace FileMoverApp
             {
                 MessageBox.Show($"Erro inesperado: {ex.Message}");
             }
+        }
+
+        private static string BuildReportPath(bool moveInsteadOfCopy)
+        {
+            Directory.CreateDirectory(@"c:\temp");
+
+            string operationName = moveInsteadOfCopy ? "Rename" : "MoveFiles";
+            return $@"c:\temp\FileMover_{operationName}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+        }
+
+        private static StreamWriter CreateReportWriter(string reportPath, bool moveInsteadOfCopy, string destinationRoot)
+        {
+            StreamWriter writer = new StreamWriter(reportPath, false, Encoding.UTF8);
+            string operationName = moveInsteadOfCopy ? "Rename" : "Move Files";
+
+            writer.WriteLine("FILEMOVER - RELATORIO DE ALTERACOES");
+            writer.WriteLine($"Aba      : {operationName}");
+            writer.WriteLine($"Gerado em: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+            writer.WriteLine($"Destino  : {destinationRoot}");
+            writer.WriteLine(new string('=', 80));
+            writer.WriteLine();
+
+            return writer;
+        }
+
+        private static void WriteReportEntry(StreamWriter writer, int itemNumber, string sourceFile, string destFile)
+        {
+            writer.WriteLine($"[{itemNumber:000}]");
+            writer.WriteLine($"Antes: {sourceFile}");
+            writer.WriteLine($"Agora: {destFile}");
+            writer.WriteLine();
+        }
+
+        private static void WriteReportSummary(StreamWriter writer, int changedFilesCount)
+        {
+            writer.WriteLine(new string('=', 80));
+            writer.WriteLine($"Total de arquivos alterados: {changedFilesCount}");
+        }
+
+        private static string BuildSuccessMessage(bool moveInsteadOfCopy, string reportPath)
+        {
+            string actionText = moveInsteadOfCopy ? "Arquivos renomeados com sucesso!" : "Arquivos movidos com sucesso!";
+
+            if (string.IsNullOrWhiteSpace(reportPath))
+            {
+                return actionText;
+            }
+
+            return $"{actionText}\r\n\r\nLog gerado em:\r\n{reportPath}";
         }
 
         private void btnExportGrid_Click(object sender, EventArgs e)
