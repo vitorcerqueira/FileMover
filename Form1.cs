@@ -923,6 +923,7 @@ namespace FileMoverApp
 
                         if (!string.IsNullOrWhiteSpace(sourceFile) &&
                             !string.IsNullOrWhiteSpace(destFile) &&
+                            File.Exists(sourceFile) &&
                             !File.Exists(destFile))
                         {
                             string destinationDir = Path.GetDirectoryName(destFile);
@@ -1172,7 +1173,18 @@ namespace FileMoverApp
                    !Directory.EnumerateFileSystemEntries(directoryPath).Any())
             {
                 string parentDirectory = Path.GetDirectoryName(directoryPath);
-                Directory.Delete(directoryPath);
+                try
+                {
+                    Directory.Delete(directoryPath);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    break;
+                }
+                catch (IOException)
+                {
+                    break;
+                }
                 directoryPath = parentDirectory;
             }
         }
