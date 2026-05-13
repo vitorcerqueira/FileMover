@@ -233,12 +233,12 @@ namespace FileMoverApp
             SaveLastValues();
             if (chkUseThread.Checked)
             {
-                new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true, false)).Start();
+                new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, txtSourceFolder.Text, requiredSpaceInMB, true, false)).Start();
             }
             else
             {
-                //new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true, false)).Start();
-                ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true, false);
+                //new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, txtSourceFolder.Text, requiredSpaceInMB, true, false)).Start();
+                ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, txtSourceFolder.Text, requiredSpaceInMB, true, false);
             }
 
             // CopyFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true));
@@ -285,12 +285,12 @@ namespace FileMoverApp
             SaveLastValues();
             if (chkInfraUseThread.Checked)
             {
-                new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true)).Start();
+                new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true)).Start();
             }
             else
             {
-                //new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true)).Start();
-                ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true);
+                //new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true)).Start();
+                ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true);
             }
 
             // CopyFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, false)
@@ -879,7 +879,7 @@ namespace FileMoverApp
             }
         }
 
-        private void ProcessFiles(DataGridView grid, ProgressBar progress, string destinationRoot, double requiredSpaceMb, bool generateReport, bool moveInsteadOfCopy)
+        private void ProcessFiles(DataGridView grid, ProgressBar progress, string destinationRoot, string cleanupBoundaryRoot, double requiredSpaceMb, bool generateReport, bool moveInsteadOfCopy)
         {
             try
             {
@@ -943,14 +943,14 @@ namespace FileMoverApp
                                     if (File.Exists(destFile))
                                     {
                                         File.Delete(sourceFile);
-                                        RemoveEmptyDirectories(Path.GetDirectoryName(sourceFile));
+                                        RemoveFilelessDirectories(Path.GetDirectoryName(sourceFile), cleanupBoundaryRoot);
                                     }
                                 }
                                 else
                                 {
                                     // Diretório recém-criado: mover é seguro e atômico
                                     File.Move(sourceFile, destFile);
-                                    RemoveEmptyDirectories(Path.GetDirectoryName(sourceFile));
+                                    RemoveFilelessDirectories(Path.GetDirectoryName(sourceFile), cleanupBoundaryRoot);
                                 }
                             }
                             else
@@ -1166,16 +1166,22 @@ namespace FileMoverApp
                 : sanitized;
         }
 
-        private static void RemoveEmptyDirectories(string directoryPath)
+        private static void RemoveFilelessDirectories(string directoryPath, string stopBeforeDirectory)
         {
             while (!string.IsNullOrWhiteSpace(directoryPath) &&
                    Directory.Exists(directoryPath) &&
-                   !Directory.EnumerateFileSystemEntries(directoryPath).Any())
+                   IsSameOrChildPath(directoryPath, stopBeforeDirectory) &&
+                   !PathsAreEquivalent(directoryPath, stopBeforeDirectory))
             {
                 string parentDirectory = Path.GetDirectoryName(directoryPath);
                 try
                 {
-                    Directory.Delete(directoryPath);
+                    if (Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories).Any())
+                    {
+                        break;
+                    }
+
+                    Directory.Delete(directoryPath, true);
                 }
                 catch (UnauthorizedAccessException)
                 {
@@ -1187,6 +1193,22 @@ namespace FileMoverApp
                 }
                 directoryPath = parentDirectory;
             }
+        }
+
+        private static bool IsSameOrChildPath(string path, string parentPath)
+        {
+            if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(parentPath))
+            {
+                return false;
+            }
+
+            string normalizedPath = Path.GetFullPath(path)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string normalizedParentPath = Path.GetFullPath(parentPath)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            return string.Equals(normalizedPath, normalizedParentPath, StringComparison.OrdinalIgnoreCase) ||
+                   normalizedPath.StartsWith(normalizedParentPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string GetUniqueDestinationPath(string destPath)
