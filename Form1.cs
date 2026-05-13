@@ -1228,10 +1228,10 @@ namespace FileMoverApp
                 string parentDirectory = Path.GetDirectoryName(directoryPath);
                 try
                 {
-                    string hiddenFilesReason = GetHiddenFilesBlockingDeletionReason(directoryPath);
-                    if (!string.IsNullOrWhiteSpace(hiddenFilesReason))
+                    string hiddenFilesCleanupReason = DeleteHiddenOrSystemFilesIfTheyAreTheOnlyRemainingFiles(directoryPath);
+                    if (!string.IsNullOrWhiteSpace(hiddenFilesCleanupReason))
                     {
-                        return BuildDirectoryCleanupFailureMessage(directoryPath, hiddenFilesReason);
+                        return BuildDirectoryCleanupFailureMessage(directoryPath, hiddenFilesCleanupReason);
                     }
 
                     if (Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories).Any())
@@ -1239,6 +1239,7 @@ namespace FileMoverApp
                         break;
                     }
 
+                    NormalizeDirectoryAttributes(directoryPath);
                     Directory.Delete(directoryPath, true);
                 }
                 catch (UnauthorizedAccessException ex)
@@ -1255,9 +1256,8 @@ namespace FileMoverApp
             return string.Empty;
         }
 
-        private static string GetHiddenFilesBlockingDeletionReason(string directoryPath)
+        private static string DeleteHiddenOrSystemFilesIfTheyAreTheOnlyRemainingFiles(string directoryPath)
         {
-            const int maxSamples = 3;
             List<string> hiddenOrSystemFiles = new List<string>();
 
             foreach (string remainingFile in Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories))
@@ -1267,10 +1267,7 @@ namespace FileMoverApp
                     return string.Empty;
                 }
 
-                if (hiddenOrSystemFiles.Count < maxSamples)
-                {
-                    hiddenOrSystemFiles.Add(remainingFile);
-                }
+                hiddenOrSystemFiles.Add(remainingFile);
             }
 
             if (hiddenOrSystemFiles.Count == 0)
@@ -1278,7 +1275,24 @@ namespace FileMoverApp
                 return string.Empty;
             }
 
-            return BuildHiddenFilesRemainingReason(directoryPath, hiddenOrSystemFiles);
+            foreach (string hiddenOrSystemFile in hiddenOrSystemFiles)
+            {
+                try
+                {
+                    NormalizeFileAttributes(hiddenOrSystemFile);
+                    File.Delete(hiddenOrSystemFile);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    return BuildHiddenFileDeletionFailureReason(directoryPath, hiddenOrSystemFile, ex.Message);
+                }
+                catch (IOException ex)
+                {
+                    return BuildHiddenFileDeletionFailureReason(directoryPath, hiddenOrSystemFile, ex.Message);
+                }
+            }
+
+            return string.Empty;
         }
 
         private static bool IsHiddenOrSystemFile(string filePath)
@@ -1287,13 +1301,39 @@ namespace FileMoverApp
             return attributes.HasFlag(FileAttributes.Hidden) || attributes.HasFlag(FileAttributes.System);
         }
 
-        private static string BuildHiddenFilesRemainingReason(string directoryPath, List<string> hiddenOrSystemFiles)
+        private static void NormalizeFileAttributes(string filePath)
         {
-            string hiddenFilesDescription = string.Join(", ",
-                hiddenOrSystemFiles.Select(filePath =>
-                    $"{Path.GetRelativePath(directoryPath, filePath)} [{GetFileAttributesDescription(filePath)}]"));
+            FileAttributes attributes = File.GetAttributes(filePath);
+            attributes &= ~FileAttributes.Hidden;
+            attributes &= ~FileAttributes.System;
+            attributes &= ~FileAttributes.ReadOnly;
+            File.SetAttributes(filePath, attributes);
+        }
 
-            return $"Arquivos ocultos/sistema ainda existem na pasta: {hiddenFilesDescription}";
+        private static void NormalizeDirectoryAttributes(string directoryPath)
+        {
+            foreach (string childDirectory in Directory.EnumerateDirectories(directoryPath, "*", SearchOption.AllDirectories)
+                .OrderByDescending(path => path.Length))
+            {
+                ClearDirectoryDeletionBlockingAttributes(childDirectory);
+            }
+
+            ClearDirectoryDeletionBlockingAttributes(directoryPath);
+        }
+
+        private static void ClearDirectoryDeletionBlockingAttributes(string directoryPath)
+        {
+            FileAttributes attributes = File.GetAttributes(directoryPath);
+            attributes &= ~FileAttributes.Hidden;
+            attributes &= ~FileAttributes.System;
+            attributes &= ~FileAttributes.ReadOnly;
+            File.SetAttributes(directoryPath, attributes);
+        }
+
+        private static string BuildHiddenFileDeletionFailureReason(string directoryPath, string filePath, string reason)
+        {
+            string relativePath = Path.GetRelativePath(directoryPath, filePath);
+            return $"Nao foi possivel excluir arquivo oculto/sistema: {relativePath} [{GetFileAttributesDescription(filePath)}] | {reason}";
         }
 
         private static string GetFileAttributesDescription(string filePath)
