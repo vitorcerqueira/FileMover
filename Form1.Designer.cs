@@ -316,7 +316,7 @@ namespace FileMoverApp
             chkUseThread.AutoSize = true;
             chkUseThread.Checked = true;
             chkUseThread.CheckState = System.Windows.Forms.CheckState.Checked;
-            chkUseThread.Location = new System.Drawing.Point(397, 61);
+            chkUseThread.Location = new System.Drawing.Point(418, 62);
             chkUseThread.Name = "chkUseThread";
             chkUseThread.Size = new System.Drawing.Size(63, 19);
             chkUseThread.TabIndex = 21;

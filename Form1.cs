@@ -434,6 +434,9 @@ namespace FileMoverApp
 
                 string pathDisciplinaDestino = Service.getPathDisciplinaDestino(disciplina);
                 string fileNameDestination = Path.Combine(txtDestinationFolder.Text, pathDisciplinaDestino, sub, km, modalidade, ano, nomePastaFoto, fileName);
+                bool isDuplicateDefault = File.Exists(fileNameDestination);
+                if (isDuplicateDefault)
+                    fileNameDestination = GetUniqueDestinationPath(fileNameDestination);
                 bool achou = File.Exists(fileNameDestination);
 
                 if (temSub && temKm && temAno && temDisciplina)
@@ -468,7 +471,7 @@ namespace FileMoverApp
 
                         requiredSpaceInMB += tamanhoBytes / (1024.0 * 1024.0);
                         linha++;
-                        AddRowToGrid(dataGridView, linha, pathFile, fileNameDestination, tamanhoFileSource, achou, false);
+                        AddRowToGrid(dataGridView, linha, pathFile, fileNameDestination, tamanhoFileSource, achou, false, isDuplicateDefault);
                         AdvanceProgress(progressBar);
                     }
                 }
@@ -525,6 +528,7 @@ namespace FileMoverApp
                 string kmFim = "";
                 bool achou = false;
                 bool valido = false;
+                bool isDuplicateInfra = false;
 
                 Service.InfraKmRange range = null;
 
@@ -556,6 +560,10 @@ namespace FileMoverApp
                     }
 
                     destination = Path.Combine(new[] { txtInfraDestinationFolder.Text }.Concat(destinationParts).ToArray());
+                    bool infraOriginalExists = !PathsAreEquivalent(pathFile, destination) && File.Exists(destination);
+                    isDuplicateInfra = infraOriginalExists;
+                    if (isDuplicateInfra)
+                        destination = GetUniqueDestinationPath(destination);
                     achou = PathsAreEquivalent(pathFile, destination) || File.Exists(destination);
                     valido = true;
                 }
@@ -596,7 +604,7 @@ namespace FileMoverApp
 
                         requiredInfraSpaceInMB += tamanhoBytes / (1024.0 * 1024.0);
                         linha++;
-                        AddRowToInfraGrid(linha, pathFile, destination, sub, equipInfra, kmInicio, kmFim, tamanho, achou, false);
+                        AddRowToInfraGrid(linha, pathFile, destination, sub, equipInfra, kmInicio, kmFim, tamanho, achou, false, isDuplicateInfra);
                         AdvanceProgress(progressBarInfra);
                     }
                 }
@@ -753,16 +761,24 @@ namespace FileMoverApp
             return string.Empty;
         }
 
-        private static void AddRowToGrid(DataGridView grid, int linha, string origem, string destino, string tamanho, bool achou, bool ignorar)
+        private static void AddRowToGrid(DataGridView grid, int linha, string origem, string destino, string tamanho, bool achou, bool ignorar, bool isDuplicate = false)
         {
             int rowIndex = grid.Rows.Add(linha, origem, destino, tamanho);
-            grid.Rows[rowIndex].DefaultCellStyle.BackColor = ignorar ? Color.Orange : achou ? Color.Green : Color.Tomato;
+            grid.Rows[rowIndex].DefaultCellStyle.BackColor =
+                ignorar ? Color.Orange :
+                achou ? Color.Green :
+                isDuplicate ? Color.Gold :
+                Color.Tomato;
         }
 
-        private void AddRowToInfraGrid(int linha, string origem, string destino, string sub, string equipInfra, string kmInicio, string kmFim, string tamanho, bool achou, bool ignorar)
+        private void AddRowToInfraGrid(int linha, string origem, string destino, string sub, string equipInfra, string kmInicio, string kmFim, string tamanho, bool achou, bool ignorar, bool isDuplicate = false)
         {
             int rowIndex = dataGridViewInfra.Rows.Add(linha, origem, destino, sub, equipInfra, kmInicio, kmFim, tamanho);
-            dataGridViewInfra.Rows[rowIndex].DefaultCellStyle.BackColor = ignorar ? Color.Orange : achou ? Color.Green : Color.Tomato;
+            dataGridViewInfra.Rows[rowIndex].DefaultCellStyle.BackColor =
+                ignorar ? Color.Orange :
+                achou ? Color.Green :
+                isDuplicate ? Color.Gold :
+                Color.Tomato;
         }
 
         private void AddRowToEquipmentGrid(int linha, string destino, string sub, string equipInfra, string kmInicio, string kmFim, bool achou, bool ignorar)
@@ -910,16 +926,31 @@ namespace FileMoverApp
                             !File.Exists(destFile))
                         {
                             string destinationDir = Path.GetDirectoryName(destFile);
+                            bool destDirAlreadyExisted = !string.IsNullOrWhiteSpace(destinationDir) && Directory.Exists(destinationDir);
 
-                            if (!string.IsNullOrWhiteSpace(destinationDir) && !Directory.Exists(destinationDir))
+                            if (!string.IsNullOrWhiteSpace(destinationDir) && !destDirAlreadyExisted)
                             {
                                 Directory.CreateDirectory(destinationDir);
                             }
 
                             if (moveInsteadOfCopy)
                             {
-                                File.Move(sourceFile, destFile);
-                                RemoveEmptyDirectories(Path.GetDirectoryName(sourceFile));
+                                if (destDirAlreadyExisted)
+                                {
+                                    // Diretório de destino já existia: copia primeiro e só apaga a origem após confirmar
+                                    File.Copy(sourceFile, destFile, false);
+                                    if (File.Exists(destFile))
+                                    {
+                                        File.Delete(sourceFile);
+                                        RemoveEmptyDirectories(Path.GetDirectoryName(sourceFile));
+                                    }
+                                }
+                                else
+                                {
+                                    // Diretório recém-criado: mover é seguro e atômico
+                                    File.Move(sourceFile, destFile);
+                                    RemoveEmptyDirectories(Path.GetDirectoryName(sourceFile));
+                                }
                             }
                             else
                             {
@@ -1144,6 +1175,26 @@ namespace FileMoverApp
                 Directory.Delete(directoryPath);
                 directoryPath = parentDirectory;
             }
+        }
+
+        private static string GetUniqueDestinationPath(string destPath)
+        {
+            if (!File.Exists(destPath))
+                return destPath;
+
+            string dir = Path.GetDirectoryName(destPath) ?? string.Empty;
+            string name = Path.GetFileNameWithoutExtension(destPath);
+            string ext = Path.GetExtension(destPath);
+
+            int counter = 1;
+            string uniquePath;
+            do
+            {
+                uniquePath = Path.Combine(dir, $"{name}_{counter}{ext}");
+                counter++;
+            } while (File.Exists(uniquePath));
+
+            return uniquePath;
         }
 
         private void Form1_Load(object sender, EventArgs e)
