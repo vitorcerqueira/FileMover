@@ -244,7 +244,7 @@ namespace FileMoverApp
             // radioIngnored
             // 
             radioIngnored.AutoSize = true;
-            radioIngnored.Location = new System.Drawing.Point(313, 61);
+            radioIngnored.Location = new System.Drawing.Point(298, 61);
             radioIngnored.Name = "radioIngnored";
             radioIngnored.Size = new System.Drawing.Size(78, 19);
             radioIngnored.TabIndex = 16;
@@ -275,7 +275,7 @@ namespace FileMoverApp
             // radioCopied
             // 
             radioCopied.AutoSize = true;
-            radioCopied.Location = new System.Drawing.Point(206, 61);
+            radioCopied.Location = new System.Drawing.Point(188, 61);
             radioCopied.Name = "radioCopied";
             radioCopied.Size = new System.Drawing.Size(75, 19);
             radioCopied.TabIndex = 15;
@@ -304,7 +304,7 @@ namespace FileMoverApp
             // radioPending
             // 
             radioPending.AutoSize = true;
-            radioPending.Location = new System.Drawing.Point(92, 61);
+            radioPending.Location = new System.Drawing.Point(84, 61);
             radioPending.Name = "radioPending";
             radioPending.Size = new System.Drawing.Size(80, 19);
             radioPending.TabIndex = 14;
@@ -316,7 +316,7 @@ namespace FileMoverApp
             chkUseThread.AutoSize = true;
             chkUseThread.Checked = true;
             chkUseThread.CheckState = System.Windows.Forms.CheckState.Checked;
-            chkUseThread.Location = new System.Drawing.Point(418, 62);
+            chkUseThread.Location = new System.Drawing.Point(418, 61);
             chkUseThread.Name = "chkUseThread";
             chkUseThread.Size = new System.Drawing.Size(63, 19);
             chkUseThread.TabIndex = 21;
