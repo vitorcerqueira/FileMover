@@ -2,6 +2,7 @@ using ClosedXML.Excel;
 using FileMover;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -209,15 +210,15 @@ namespace FileMoverApp
             }
             catch (UnauthorizedAccessException ex)
             {
-                MessageBox.Show($"Erro de permissão: {ex.Message}");
+                ShowOwnedMessage($"Erro de permissão: {ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (IOException ex)
             {
-                MessageBox.Show($"Erro de entrada/saída: {ex.Message}");
+                ShowOwnedMessage($"Erro de entrada/saída: {ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro inesperado: {ex.Message}");
+                ShowOwnedMessage($"Erro inesperado: {ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -269,7 +270,7 @@ namespace FileMoverApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro inesperado: {ex.Message}");
+                ShowOwnedMessage($"Erro inesperado: {ex.Message}", "AtenÃ§Ã£o", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -319,7 +320,7 @@ namespace FileMoverApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro inesperado: {ex.Message}");
+                ShowOwnedMessage($"Erro inesperado: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -356,7 +357,7 @@ namespace FileMoverApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro ao carregar grid: {ex.Message}", "Atenção", MessageBoxButtons.OK,
+                ShowOwnedMessage($"Erro ao carregar grid: {ex.Message}", "Atenção", MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
         }
@@ -372,7 +373,7 @@ namespace FileMoverApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro ao carregar aba Infra: {ex.Message}", "Atenção", MessageBoxButtons.OK,
+                ShowOwnedMessage($"Erro ao carregar aba Infra: {ex.Message}", "Atenção", MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
         }
@@ -386,7 +387,7 @@ namespace FileMoverApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro ao carregar aba Criar pastas Equipamentos: {ex.Message}", "Atencao",
+                ShowOwnedMessage($"Erro ao carregar aba Criar pastas Equipamentos: {ex.Message}", "Atencao",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -807,6 +808,18 @@ namespace FileMoverApp
             action();
         }
 
+        private DialogResult ShowOwnedMessage(string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon)
+        {
+            DialogResult result = DialogResult.None;
+
+            RunOnUiThread(() =>
+            {
+                result = MessageBox.Show(this, text, caption, buttons, icon);
+            });
+
+            return result;
+        }
+
         private static bool PathsAreEquivalent(string firstPath, string secondPath)
         {
             if (string.IsNullOrWhiteSpace(firstPath) || string.IsNullOrWhiteSpace(secondPath))
@@ -857,7 +870,7 @@ namespace FileMoverApp
                     });
                 }
 
-                MessageBox.Show(
+                ShowOwnedMessage(
                     createdCount > 0
                         ? $"Pastas criadas com sucesso: {createdCount}"
                         : "Nenhuma pasta nova precisou ser criada.",
@@ -867,15 +880,15 @@ namespace FileMoverApp
             }
             catch (UnauthorizedAccessException ex)
             {
-                MessageBox.Show($"Erro de permissao: {ex.Message}");
+                ShowOwnedMessage($"Erro de permissao: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (IOException ex)
             {
-                MessageBox.Show($"Erro de entrada/saida: {ex.Message}");
+                ShowOwnedMessage($"Erro de entrada/saida: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro inesperado: {ex.Message}");
+                ShowOwnedMessage($"Erro inesperado: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -888,7 +901,7 @@ namespace FileMoverApp
 
                 if (availableFreeSpace < requiredSpaceMb)
                 {
-                    MessageBox.Show(
+                    ShowOwnedMessage(
                         "Não há espaço suficiente disponível em " + drive.Name +
                         " \n \n Requerido: " + requiredSpaceMb.ToString("F2") +
                         " MB \n \n Livre : " + availableFreeSpace.ToString("F2") + " MB",
@@ -913,6 +926,7 @@ namespace FileMoverApp
                 string reportPath = string.Empty;
                 bool copiedAny = false;
                 int changedFilesCount = 0;
+                int cleanupFailureCount = 0;
 
                 try
                 {
@@ -926,6 +940,7 @@ namespace FileMoverApp
                             File.Exists(sourceFile) &&
                             !File.Exists(destFile))
                         {
+                            string cleanupFailureReason = string.Empty;
                             string destinationDir = Path.GetDirectoryName(destFile);
                             bool destDirAlreadyExisted = !string.IsNullOrWhiteSpace(destinationDir) && Directory.Exists(destinationDir);
 
@@ -943,14 +958,14 @@ namespace FileMoverApp
                                     if (File.Exists(destFile))
                                     {
                                         File.Delete(sourceFile);
-                                        RemoveFilelessDirectories(Path.GetDirectoryName(sourceFile), cleanupBoundaryRoot);
+                                        cleanupFailureReason = RemoveFilelessDirectories(Path.GetDirectoryName(sourceFile), cleanupBoundaryRoot);
                                     }
                                 }
                                 else
                                 {
                                     // Diretório recém-criado: mover é seguro e atômico
                                     File.Move(sourceFile, destFile);
-                                    RemoveFilelessDirectories(Path.GetDirectoryName(sourceFile), cleanupBoundaryRoot);
+                                    cleanupFailureReason = RemoveFilelessDirectories(Path.GetDirectoryName(sourceFile), cleanupBoundaryRoot);
                                 }
                             }
                             else
@@ -960,6 +975,10 @@ namespace FileMoverApp
 
                             copiedAny = true;
                             changedFilesCount++;
+                            if (!string.IsNullOrWhiteSpace(cleanupFailureReason))
+                            {
+                                cleanupFailureCount++;
+                            }
 
                             if (generateReport)
                             {
@@ -969,7 +988,7 @@ namespace FileMoverApp
                                     writer = CreateReportWriter(reportPath, moveInsteadOfCopy, destinationRoot);
                                 }
 
-                                WriteReportEntry(writer, changedFilesCount, sourceFile, destFile);
+                                WriteReportEntry(writer, changedFilesCount, sourceFile, destFile, cleanupFailureReason);
                             }
                         }
 
@@ -981,31 +1000,36 @@ namespace FileMoverApp
                 {
                     if (writer != null)
                     {
-                        WriteReportSummary(writer, changedFilesCount);
+                        WriteReportSummary(writer, changedFilesCount, cleanupFailureCount);
                     }
 
                     writer?.Close();
                 }
 
-                MessageBox.Show(
+                DialogResult successResult = ShowOwnedMessage(
                     copiedAny
                         ? BuildSuccessMessage(moveInsteadOfCopy, reportPath)
                         : "Não foi encontrado arquivos para copiar!",
                     "Atenção",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Exclamation);
+
+                if (copiedAny && successResult == DialogResult.OK)
+                {
+                    OpenReportFile(reportPath);
+                }
             }
             catch (UnauthorizedAccessException ex)
             {
-                MessageBox.Show($"Erro de permissão: {ex.Message}");
+                ShowOwnedMessage($"Erro de permissao: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (IOException ex)
             {
-                MessageBox.Show($"Erro de entrada/saída: {ex.Message}");
+                ShowOwnedMessage($"Erro de entrada/saida: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro inesperado: {ex.Message}");
+                ShowOwnedMessage($"Erro inesperado: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -1032,18 +1056,25 @@ namespace FileMoverApp
             return writer;
         }
 
-        private static void WriteReportEntry(StreamWriter writer, int itemNumber, string sourceFile, string destFile)
+        private static void WriteReportEntry(StreamWriter writer, int itemNumber, string sourceFile, string destFile, string cleanupFailureReason = "")
         {
             writer.WriteLine($"[{itemNumber:000}]");
             writer.WriteLine($"Antes: {sourceFile}");
             writer.WriteLine($"Agora: {destFile}");
+
+            if (!string.IsNullOrWhiteSpace(cleanupFailureReason))
+            {
+                writer.WriteLine($"Falha ao excluir pasta de origem: {cleanupFailureReason}");
+            }
+
             writer.WriteLine();
         }
 
-        private static void WriteReportSummary(StreamWriter writer, int changedFilesCount)
+        private static void WriteReportSummary(StreamWriter writer, int changedFilesCount, int cleanupFailureCount)
         {
             writer.WriteLine(new string('=', 80));
             writer.WriteLine($"Total de arquivos alterados: {changedFilesCount}");
+            writer.WriteLine($"Falhas ao excluir pastas de origem: {cleanupFailureCount}");
         }
 
         private static string BuildSuccessMessage(bool moveInsteadOfCopy, string reportPath)
@@ -1056,6 +1087,27 @@ namespace FileMoverApp
             }
 
             return $"{actionText}\r\n\r\nLog gerado em:\r\n{reportPath}";
+        }
+
+        private void OpenReportFile(string reportPath)
+        {
+            if (string.IsNullOrWhiteSpace(reportPath) || !File.Exists(reportPath))
+            {
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = reportPath,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                ShowOwnedMessage($"Nao foi possivel abrir o log: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnExportGrid_Click(object sender, EventArgs e)
@@ -1166,7 +1218,7 @@ namespace FileMoverApp
                 : sanitized;
         }
 
-        private static void RemoveFilelessDirectories(string directoryPath, string stopBeforeDirectory)
+        private static string RemoveFilelessDirectories(string directoryPath, string stopBeforeDirectory)
         {
             while (!string.IsNullOrWhiteSpace(directoryPath) &&
                    Directory.Exists(directoryPath) &&
@@ -1176,6 +1228,12 @@ namespace FileMoverApp
                 string parentDirectory = Path.GetDirectoryName(directoryPath);
                 try
                 {
+                    string hiddenFilesReason = GetHiddenFilesBlockingDeletionReason(directoryPath);
+                    if (!string.IsNullOrWhiteSpace(hiddenFilesReason))
+                    {
+                        return BuildDirectoryCleanupFailureMessage(directoryPath, hiddenFilesReason);
+                    }
+
                     if (Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories).Any())
                     {
                         break;
@@ -1183,16 +1241,84 @@ namespace FileMoverApp
 
                     Directory.Delete(directoryPath, true);
                 }
-                catch (UnauthorizedAccessException)
+                catch (UnauthorizedAccessException ex)
                 {
-                    break;
+                    return BuildDirectoryCleanupFailureMessage(directoryPath, ex.Message);
                 }
-                catch (IOException)
+                catch (IOException ex)
                 {
-                    break;
+                    return BuildDirectoryCleanupFailureMessage(directoryPath, ex.Message);
                 }
                 directoryPath = parentDirectory;
             }
+
+            return string.Empty;
+        }
+
+        private static string GetHiddenFilesBlockingDeletionReason(string directoryPath)
+        {
+            const int maxSamples = 3;
+            List<string> hiddenOrSystemFiles = new List<string>();
+
+            foreach (string remainingFile in Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories))
+            {
+                if (!IsHiddenOrSystemFile(remainingFile))
+                {
+                    return string.Empty;
+                }
+
+                if (hiddenOrSystemFiles.Count < maxSamples)
+                {
+                    hiddenOrSystemFiles.Add(remainingFile);
+                }
+            }
+
+            if (hiddenOrSystemFiles.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            return BuildHiddenFilesRemainingReason(directoryPath, hiddenOrSystemFiles);
+        }
+
+        private static bool IsHiddenOrSystemFile(string filePath)
+        {
+            FileAttributes attributes = File.GetAttributes(filePath);
+            return attributes.HasFlag(FileAttributes.Hidden) || attributes.HasFlag(FileAttributes.System);
+        }
+
+        private static string BuildHiddenFilesRemainingReason(string directoryPath, List<string> hiddenOrSystemFiles)
+        {
+            string hiddenFilesDescription = string.Join(", ",
+                hiddenOrSystemFiles.Select(filePath =>
+                    $"{Path.GetRelativePath(directoryPath, filePath)} [{GetFileAttributesDescription(filePath)}]"));
+
+            return $"Arquivos ocultos/sistema ainda existem na pasta: {hiddenFilesDescription}";
+        }
+
+        private static string GetFileAttributesDescription(string filePath)
+        {
+            FileAttributes attributes = File.GetAttributes(filePath);
+            List<string> attributeNames = new List<string>();
+
+            if (attributes.HasFlag(FileAttributes.Hidden))
+            {
+                attributeNames.Add("Hidden");
+            }
+
+            if (attributes.HasFlag(FileAttributes.System))
+            {
+                attributeNames.Add("System");
+            }
+
+            if (attributes.HasFlag(FileAttributes.ReadOnly))
+            {
+                attributeNames.Add("ReadOnly");
+            }
+
+            return attributeNames.Count == 0
+                ? attributes.ToString()
+                : string.Join(",", attributeNames);
         }
 
         private static bool IsSameOrChildPath(string path, string parentPath)
@@ -1209,6 +1335,11 @@ namespace FileMoverApp
 
             return string.Equals(normalizedPath, normalizedParentPath, StringComparison.OrdinalIgnoreCase) ||
                    normalizedPath.StartsWith(normalizedParentPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string BuildDirectoryCleanupFailureMessage(string directoryPath, string reason)
+        {
+            return $"{directoryPath} | Motivo: {reason}";
         }
 
         private static string GetUniqueDestinationPath(string destPath)
