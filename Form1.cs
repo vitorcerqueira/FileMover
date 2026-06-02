@@ -16,8 +16,77 @@ namespace FileMoverApp
     public partial class Form1 : Form
     {
         private const string ConfigFilePath = "Config.xml";
+        private const int AutoClosingNotificationMilliseconds = 3000;
+        private const int FileAttributePinned = 0x00080000;
+        private const int FileAttributeUnpinned = 0x00100000;
+        private const int FileAttributeRecallOnOpen = 0x00040000;
+        private const int FileAttributeRecallOnDataAccess = 0x00400000;
         private double requiredSpaceInMB = 0;
         private double requiredInfraSpaceInMB = 0;
+
+        private sealed class FileProcessOutcome
+        {
+            public bool DestinationChanged { get; init; }
+            public bool IsSkipped { get; init; }
+            public bool IsFailure { get; init; }
+            public bool IsPartialFailure { get; init; }
+            public string Status { get; init; } = string.Empty;
+            public string Details { get; init; } = string.Empty;
+            public string CleanupFailureReason { get; init; } = string.Empty;
+
+            public static FileProcessOutcome Success(string cleanupFailureReason = "")
+            {
+                return new FileProcessOutcome
+                {
+                    DestinationChanged = true,
+                    Status = "OK",
+                    CleanupFailureReason = cleanupFailureReason
+                };
+            }
+
+            public static FileProcessOutcome Skipped(string details)
+            {
+                return new FileProcessOutcome
+                {
+                    IsSkipped = true,
+                    Status = "IGNORADO",
+                    Details = details
+                };
+            }
+
+            public static FileProcessOutcome Failure(string details)
+            {
+                return new FileProcessOutcome
+                {
+                    IsFailure = true,
+                    Status = "FALHA",
+                    Details = details
+                };
+            }
+
+            public static FileProcessOutcome PartialFailure(string details)
+            {
+                return new FileProcessOutcome
+                {
+                    DestinationChanged = true,
+                    IsFailure = true,
+                    IsPartialFailure = true,
+                    Status = "PARCIAL",
+                    Details = details
+                };
+            }
+        }
+
+        private sealed class ProcessReportTotals
+        {
+            public int ChangedFilesCount { get; set; }
+            public int SkippedFilesCount { get; set; }
+            public int FailedFilesCount { get; set; }
+            public int PartialFailureCount { get; set; }
+            public int CleanupFailureCount { get; set; }
+            public int LoggedEntryCount { get; set; }
+        }
+
         public Form1()
         {
             InitializeComponent();
@@ -820,6 +889,281 @@ namespace FileMoverApp
             return result;
         }
 
+        private void ShowAutoClosingOwnedMessage(string text, string caption, MessageBoxIcon icon, int autoCloseMilliseconds = AutoClosingNotificationMilliseconds)
+        {
+            RunOnUiThread(() =>
+            {
+                using Form notificationForm = new Form
+                {
+                    Text = caption,
+                    FormBorderStyle = FormBorderStyle.FixedDialog,
+                    StartPosition = FormStartPosition.CenterParent,
+                    ShowInTaskbar = false,
+                    MinimizeBox = false,
+                    MaximizeBox = false,
+                    TopMost = true,
+                    AutoSize = true,
+                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                    Padding = new Padding(12),
+                    Font = Font
+                };
+
+                TableLayoutPanel layout = new TableLayoutPanel
+                {
+                    AutoSize = true,
+                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                    ColumnCount = 2,
+                    RowCount = 1,
+                    Dock = DockStyle.Fill
+                };
+                layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+                layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+                PictureBox iconBox = new PictureBox
+                {
+                    SizeMode = PictureBoxSizeMode.AutoSize,
+                    Margin = new Padding(0, 4, 12, 0)
+                };
+                Icon notificationIcon = icon switch
+                {
+                    MessageBoxIcon.Error => SystemIcons.Error,
+                    MessageBoxIcon.Warning => SystemIcons.Warning,
+                    MessageBoxIcon.Information => SystemIcons.Information,
+                    _ => SystemIcons.Information
+                };
+                iconBox.Image = notificationIcon.ToBitmap();
+
+                Label textLabel = new Label
+                {
+                    AutoSize = true,
+                    MaximumSize = new Size(520, 0),
+                    Text = text
+                };
+
+                layout.Controls.Add(iconBox, 0, 0);
+                layout.Controls.Add(textLabel, 1, 0);
+                notificationForm.Controls.Add(layout);
+
+                System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer
+                {
+                    Interval = Math.Max(1000, autoCloseMilliseconds)
+                };
+                timer.Tick += (_, _) =>
+                {
+                    timer.Stop();
+                    notificationForm.Close();
+                };
+                notificationForm.Shown += (_, _) => timer.Start();
+                notificationForm.FormClosed += (_, _) =>
+                {
+                    timer.Stop();
+                    timer.Dispose();
+                    iconBox.Image?.Dispose();
+                };
+
+                notificationForm.ShowDialog(this);
+            });
+        }
+
+        private static FileProcessOutcome ProcessFile(string sourceFile, string destFile, string cleanupBoundaryRoot, bool moveInsteadOfCopy)
+        {
+            if (!TryEnsureFileAvailableLocally(sourceFile, out string availabilityFailureReason))
+            {
+                string availabilityDetails =
+                    "Nao foi possivel manter o arquivo disponivel neste dispositivo. " +
+                    "Arquivo de origem mantido e limpeza da pasta de origem nao executada. " +
+                    $"Motivo: {availabilityFailureReason} | Atributos: {GetFileAttributesDescription(sourceFile)}";
+
+                return FileProcessOutcome.Skipped(availabilityDetails);
+            }
+
+            string destinationDir = Path.GetDirectoryName(destFile);
+            bool destDirAlreadyExisted = !string.IsNullOrWhiteSpace(destinationDir) && Directory.Exists(destinationDir);
+
+            if (!string.IsNullOrWhiteSpace(destinationDir) && !destDirAlreadyExisted)
+            {
+                Directory.CreateDirectory(destinationDir);
+            }
+
+            if (!moveInsteadOfCopy)
+            {
+                File.Copy(sourceFile, destFile, true);
+                return FileProcessOutcome.Success();
+            }
+
+            if (destDirAlreadyExisted)
+            {
+                // Diretório de destino já existia: copia primeiro e só apaga a origem após confirmar
+                File.Copy(sourceFile, destFile, false);
+
+                try
+                {
+                    File.Delete(sourceFile);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    return FileProcessOutcome.PartialFailure(
+                        "Arquivo copiado para o destino, mas a origem nao pode ser removida. " +
+                        "Pasta de origem preservada. " +
+                        $"Motivo: {ex.Message}");
+                }
+                catch (IOException ex)
+                {
+                    return FileProcessOutcome.PartialFailure(
+                        "Arquivo copiado para o destino, mas a origem nao pode ser removida. " +
+                        "Pasta de origem preservada. " +
+                        $"Motivo: {ex.Message}");
+                }
+            }
+            else
+            {
+                // Diretório recém-criado: mover é seguro e atômico
+                File.Move(sourceFile, destFile);
+            }
+
+            string cleanupFailureReason = RemoveFilelessDirectories(Path.GetDirectoryName(sourceFile), cleanupBoundaryRoot);
+            return FileProcessOutcome.Success(cleanupFailureReason);
+        }
+
+        private static bool TryEnsureFileAvailableLocally(string filePath, out string failureReason)
+        {
+            failureReason = string.Empty;
+
+            if (!File.Exists(filePath))
+            {
+                failureReason = "Arquivo de origem nao encontrado no momento da movimentacao.";
+                return false;
+            }
+
+            if (TryProbeFileRead(filePath, out string initialReadFailure))
+            {
+                return true;
+            }
+
+            FileAttributes attributes = File.GetAttributes(filePath);
+            bool shouldAttemptPin = attributes.HasFlag(FileAttributes.Offline) ||
+                                    HasCustomFileAttributeFlag(attributes, FileAttributeRecallOnOpen) ||
+                                    HasCustomFileAttributeFlag(attributes, FileAttributeRecallOnDataAccess) ||
+                                    IsCloudOperationMessage(initialReadFailure);
+
+            if (!shouldAttemptPin)
+            {
+                failureReason = initialReadFailure;
+                return false;
+            }
+
+            if (!TryMarkFileAsAlwaysAvailable(filePath, out string pinFailureReason))
+            {
+                failureReason = $"Falha ao marcar 'Sempre manter neste dispositivo': {pinFailureReason}";
+                return false;
+            }
+
+            if (WaitUntilFileReadable(filePath, TimeSpan.FromSeconds(20), out string availabilityFailureReason))
+            {
+                return true;
+            }
+
+            failureReason = $"Arquivo permaneceu indisponivel apos marcar 'Sempre manter neste dispositivo': {availabilityFailureReason}";
+            return false;
+        }
+
+        private static bool TryProbeFileRead(string filePath, out string failureReason)
+        {
+            try
+            {
+                using FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                byte[] buffer = new byte[1];
+                stream.Read(buffer, 0, buffer.Length);
+                failureReason = string.Empty;
+                return true;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                failureReason = ex.Message;
+                return false;
+            }
+            catch (IOException ex)
+            {
+                failureReason = ex.Message;
+                return false;
+            }
+        }
+
+        private static bool TryMarkFileAsAlwaysAvailable(string filePath, out string failureReason)
+        {
+            try
+            {
+                using Process process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "attrib",
+                        Arguments = $"+p \"{filePath}\"",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    }
+                };
+
+                process.Start();
+                string standardOutput = process.StandardOutput.ReadToEnd().Trim();
+                string standardError = process.StandardError.ReadToEnd().Trim();
+                process.WaitForExit();
+
+                if (process.ExitCode == 0)
+                {
+                    failureReason = string.Empty;
+                    return true;
+                }
+
+                failureReason = string.Join(
+                    " | ",
+                    new[] { standardOutput, standardError, $"ExitCode={process.ExitCode}" }
+                        .Where(value => !string.IsNullOrWhiteSpace(value)));
+                return false;
+            }
+            catch (Exception ex)
+            {
+                failureReason = ex.Message;
+                return false;
+            }
+        }
+
+        private static bool WaitUntilFileReadable(string filePath, TimeSpan timeout, out string failureReason)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            failureReason = "Timeout ao aguardar o download local.";
+
+            while (stopwatch.Elapsed < timeout)
+            {
+                if (TryProbeFileRead(filePath, out failureReason))
+                {
+                    return true;
+                }
+
+                Thread.Sleep(500);
+            }
+
+            return false;
+        }
+
+        private static bool HasCustomFileAttributeFlag(FileAttributes attributes, int flag)
+        {
+            return (((int)attributes) & flag) == flag;
+        }
+
+        private static bool IsCloudOperationMessage(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return false;
+            }
+
+            return message.Contains("nuvem", StringComparison.OrdinalIgnoreCase) ||
+                   message.Contains("cloud", StringComparison.OrdinalIgnoreCase);
+        }
+
         private static bool PathsAreEquivalent(string firstPath, string secondPath)
         {
             if (string.IsNullOrWhiteSpace(firstPath) || string.IsNullOrWhiteSpace(secondPath))
@@ -870,12 +1214,11 @@ namespace FileMoverApp
                     });
                 }
 
-                ShowOwnedMessage(
+                ShowAutoClosingOwnedMessage(
                     createdCount > 0
                         ? $"Pastas criadas com sucesso: {createdCount}"
                         : "Nenhuma pasta nova precisou ser criada.",
                     "Atencao",
-                    MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
             catch (UnauthorizedAccessException ex)
@@ -925,8 +1268,7 @@ namespace FileMoverApp
                 StreamWriter writer = null;
                 string reportPath = string.Empty;
                 bool copiedAny = false;
-                int changedFilesCount = 0;
-                int cleanupFailureCount = 0;
+                ProcessReportTotals totals = new ProcessReportTotals();
 
                 try
                 {
@@ -940,55 +1282,69 @@ namespace FileMoverApp
                             File.Exists(sourceFile) &&
                             !File.Exists(destFile))
                         {
-                            string cleanupFailureReason = string.Empty;
-                            string destinationDir = Path.GetDirectoryName(destFile);
-                            bool destDirAlreadyExisted = !string.IsNullOrWhiteSpace(destinationDir) && Directory.Exists(destinationDir);
-
-                            if (!string.IsNullOrWhiteSpace(destinationDir) && !destDirAlreadyExisted)
+                            FileProcessOutcome outcome;
+                            try
                             {
-                                Directory.CreateDirectory(destinationDir);
+                                outcome = ProcessFile(sourceFile, destFile, cleanupBoundaryRoot, moveInsteadOfCopy);
+                            }
+                            catch (UnauthorizedAccessException ex)
+                            {
+                                outcome = FileProcessOutcome.Failure(
+                                    "Falha ao processar arquivo. Origem mantida e limpeza da pasta de origem nao executada. " +
+                                    $"Motivo: {ex.Message}");
+                            }
+                            catch (IOException ex)
+                            {
+                                outcome = FileProcessOutcome.Failure(
+                                    "Falha ao processar arquivo. Origem mantida e limpeza da pasta de origem nao executada. " +
+                                    $"Motivo: {ex.Message}");
+                            }
+                            catch (Exception ex)
+                            {
+                                outcome = FileProcessOutcome.Failure(
+                                    "Falha inesperada ao processar arquivo. Origem mantida e limpeza da pasta de origem nao executada. " +
+                                    $"Motivo: {ex.Message}");
                             }
 
-                            if (moveInsteadOfCopy)
+                            copiedAny |= outcome.DestinationChanged;
+
+                            if (outcome.DestinationChanged)
                             {
-                                if (destDirAlreadyExisted)
-                                {
-                                    // Diretório de destino já existia: copia primeiro e só apaga a origem após confirmar
-                                    File.Copy(sourceFile, destFile, false);
-                                    if (File.Exists(destFile))
-                                    {
-                                        File.Delete(sourceFile);
-                                        cleanupFailureReason = RemoveFilelessDirectories(Path.GetDirectoryName(sourceFile), cleanupBoundaryRoot);
-                                    }
-                                }
-                                else
-                                {
-                                    // Diretório recém-criado: mover é seguro e atômico
-                                    File.Move(sourceFile, destFile);
-                                    cleanupFailureReason = RemoveFilelessDirectories(Path.GetDirectoryName(sourceFile), cleanupBoundaryRoot);
-                                }
-                            }
-                            else
-                            {
-                                File.Copy(sourceFile, destFile, true);
+                                totals.ChangedFilesCount++;
                             }
 
-                            copiedAny = true;
-                            changedFilesCount++;
-                            if (!string.IsNullOrWhiteSpace(cleanupFailureReason))
+                            if (outcome.IsSkipped)
                             {
-                                cleanupFailureCount++;
+                                totals.SkippedFilesCount++;
+                            }
+
+                            if (outcome.IsFailure && !outcome.IsPartialFailure)
+                            {
+                                totals.FailedFilesCount++;
+                            }
+
+                            if (outcome.IsPartialFailure)
+                            {
+                                totals.PartialFailureCount++;
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(outcome.CleanupFailureReason))
+                            {
+                                totals.CleanupFailureCount++;
                             }
 
                             if (generateReport)
                             {
-                                if (writer == null)
-                                {
-                                    reportPath = BuildReportPath(moveInsteadOfCopy);
-                                    writer = CreateReportWriter(reportPath, moveInsteadOfCopy, destinationRoot);
-                                }
-
-                                WriteReportEntry(writer, changedFilesCount, sourceFile, destFile, cleanupFailureReason);
+                                EnsureReportWriter(ref writer, ref reportPath, moveInsteadOfCopy, destinationRoot);
+                                totals.LoggedEntryCount++;
+                                WriteReportEntry(
+                                    writer,
+                                    totals.LoggedEntryCount,
+                                    outcome.Status,
+                                    sourceFile,
+                                    destFile,
+                                    outcome.Details,
+                                    outcome.CleanupFailureReason);
                             }
                         }
 
@@ -1000,21 +1356,18 @@ namespace FileMoverApp
                 {
                     if (writer != null)
                     {
-                        WriteReportSummary(writer, changedFilesCount, cleanupFailureCount);
+                        WriteReportSummary(writer, totals);
                     }
 
                     writer?.Close();
                 }
 
-                DialogResult successResult = ShowOwnedMessage(
-                    copiedAny
-                        ? BuildSuccessMessage(moveInsteadOfCopy, reportPath)
-                        : "Não foi encontrado arquivos para copiar!",
+                ShowAutoClosingOwnedMessage(
+                    BuildCompletionMessage(moveInsteadOfCopy, reportPath, totals, copiedAny),
                     "Atenção",
-                    MessageBoxButtons.OK,
                     MessageBoxIcon.Exclamation);
 
-                if (copiedAny && successResult == DialogResult.OK)
+                if (ShouldAutoOpenReport(reportPath, totals))
                 {
                     OpenReportFile(reportPath);
                 }
@@ -1056,11 +1409,28 @@ namespace FileMoverApp
             return writer;
         }
 
-        private static void WriteReportEntry(StreamWriter writer, int itemNumber, string sourceFile, string destFile, string cleanupFailureReason = "")
+        private static void EnsureReportWriter(ref StreamWriter writer, ref string reportPath, bool moveInsteadOfCopy, string destinationRoot)
+        {
+            if (writer != null)
+            {
+                return;
+            }
+
+            reportPath = BuildReportPath(moveInsteadOfCopy);
+            writer = CreateReportWriter(reportPath, moveInsteadOfCopy, destinationRoot);
+        }
+
+        private static void WriteReportEntry(StreamWriter writer, int itemNumber, string status, string sourceFile, string destFile, string details = "", string cleanupFailureReason = "")
         {
             writer.WriteLine($"[{itemNumber:000}]");
+            writer.WriteLine($"Status: {status}");
             writer.WriteLine($"Antes: {sourceFile}");
             writer.WriteLine($"Agora: {destFile}");
+
+            if (!string.IsNullOrWhiteSpace(details))
+            {
+                writer.WriteLine($"Detalhes: {details}");
+            }
 
             if (!string.IsNullOrWhiteSpace(cleanupFailureReason))
             {
@@ -1070,23 +1440,57 @@ namespace FileMoverApp
             writer.WriteLine();
         }
 
-        private static void WriteReportSummary(StreamWriter writer, int changedFilesCount, int cleanupFailureCount)
+        private static void WriteReportSummary(StreamWriter writer, ProcessReportTotals totals)
         {
             writer.WriteLine(new string('=', 80));
-            writer.WriteLine($"Total de arquivos alterados: {changedFilesCount}");
-            writer.WriteLine($"Falhas ao excluir pastas de origem: {cleanupFailureCount}");
+            writer.WriteLine($"Total de arquivos alterados no destino: {totals.ChangedFilesCount}");
+            writer.WriteLine($"Arquivos ignorados e mantidos na origem: {totals.SkippedFilesCount}");
+            writer.WriteLine($"Arquivos com falha: {totals.FailedFilesCount}");
+            writer.WriteLine($"Arquivos alterados com pendencia: {totals.PartialFailureCount}");
+            writer.WriteLine($"Falhas ao excluir pastas de origem: {totals.CleanupFailureCount}");
         }
 
-        private static string BuildSuccessMessage(bool moveInsteadOfCopy, string reportPath)
+        private static string BuildCompletionMessage(bool moveInsteadOfCopy, string reportPath, ProcessReportTotals totals, bool copiedAny)
         {
-            string actionText = moveInsteadOfCopy ? "Arquivos renomeados com sucesso!" : "Arquivos movidos com sucesso!";
-
-            if (string.IsNullOrWhiteSpace(reportPath))
+            if (!copiedAny && totals.SkippedFilesCount == 0 && totals.FailedFilesCount == 0)
             {
-                return actionText;
+                return "Não foi encontrado arquivos para copiar!";
             }
 
-            return $"{actionText}\r\n\r\nLog gerado em:\r\n{reportPath}";
+            string actionText = moveInsteadOfCopy ? "renomeação" : "movimentação";
+            StringBuilder messageBuilder = new StringBuilder();
+            messageBuilder.AppendLine($"Processo de {actionText} concluído.");
+            messageBuilder.AppendLine();
+            messageBuilder.AppendLine($"Alterados no destino: {totals.ChangedFilesCount}");
+
+            if (totals.SkippedFilesCount > 0)
+            {
+                messageBuilder.AppendLine($"Ignorados e mantidos na origem: {totals.SkippedFilesCount}");
+            }
+
+            if (totals.FailedFilesCount > 0)
+            {
+                messageBuilder.AppendLine($"Falhas: {totals.FailedFilesCount}");
+            }
+
+            if (totals.PartialFailureCount > 0)
+            {
+                messageBuilder.AppendLine($"Pendências após alterar: {totals.PartialFailureCount}");
+            }
+
+            if (totals.CleanupFailureCount > 0)
+            {
+                messageBuilder.AppendLine($"Falhas ao excluir pastas de origem: {totals.CleanupFailureCount}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(reportPath))
+            {
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("Log gerado em:");
+                messageBuilder.Append(reportPath);
+            }
+
+            return messageBuilder.ToString().TrimEnd();
         }
 
         private void OpenReportFile(string reportPath)
@@ -1108,6 +1512,13 @@ namespace FileMoverApp
             {
                 ShowOwnedMessage($"Nao foi possivel abrir o log: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private bool ShouldAutoOpenReport(string reportPath, ProcessReportTotals totals)
+        {
+            return !string.IsNullOrWhiteSpace(reportPath) &&
+                   File.Exists(reportPath) &&
+                   (totals.SkippedFilesCount > 0 || totals.FailedFilesCount > totals.PartialFailureCount || totals.PartialFailureCount > 0 || totals.CleanupFailureCount > 0);
         }
 
         private void btnExportGrid_Click(object sender, EventArgs e)
@@ -1338,27 +1749,69 @@ namespace FileMoverApp
 
         private static string GetFileAttributesDescription(string filePath)
         {
-            FileAttributes attributes = File.GetAttributes(filePath);
-            List<string> attributeNames = new List<string>();
-
-            if (attributes.HasFlag(FileAttributes.Hidden))
+            try
             {
-                attributeNames.Add("Hidden");
-            }
+                FileAttributes attributes = File.GetAttributes(filePath);
+                List<string> attributeNames = new List<string>();
 
-            if (attributes.HasFlag(FileAttributes.System))
+                if (attributes.HasFlag(FileAttributes.Hidden))
+                {
+                    attributeNames.Add("Hidden");
+                }
+
+                if (attributes.HasFlag(FileAttributes.System))
+                {
+                    attributeNames.Add("System");
+                }
+
+                if (attributes.HasFlag(FileAttributes.ReadOnly))
+                {
+                    attributeNames.Add("ReadOnly");
+                }
+
+                if (attributes.HasFlag(FileAttributes.Offline))
+                {
+                    attributeNames.Add("Offline");
+                }
+
+                if (attributes.HasFlag(FileAttributes.ReparsePoint))
+                {
+                    attributeNames.Add("ReparsePoint");
+                }
+
+                if (attributes.HasFlag(FileAttributes.Archive))
+                {
+                    attributeNames.Add("Archive");
+                }
+
+                if (HasCustomFileAttributeFlag(attributes, FileAttributePinned))
+                {
+                    attributeNames.Add("Pinned");
+                }
+
+                if (HasCustomFileAttributeFlag(attributes, FileAttributeUnpinned))
+                {
+                    attributeNames.Add("Unpinned");
+                }
+
+                if (HasCustomFileAttributeFlag(attributes, FileAttributeRecallOnOpen))
+                {
+                    attributeNames.Add("RecallOnOpen");
+                }
+
+                if (HasCustomFileAttributeFlag(attributes, FileAttributeRecallOnDataAccess))
+                {
+                    attributeNames.Add("RecallOnDataAccess");
+                }
+
+                return attributeNames.Count == 0
+                    ? attributes.ToString()
+                    : string.Join(",", attributeNames.Distinct());
+            }
+            catch (Exception ex)
             {
-                attributeNames.Add("System");
+                return $"Nao foi possivel ler atributos: {ex.Message}";
             }
-
-            if (attributes.HasFlag(FileAttributes.ReadOnly))
-            {
-                attributeNames.Add("ReadOnly");
-            }
-
-            return attributeNames.Count == 0
-                ? attributes.ToString()
-                : string.Join(",", attributeNames);
         }
 
         private static bool IsSameOrChildPath(string path, string parentPath)
