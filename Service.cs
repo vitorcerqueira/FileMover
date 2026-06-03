@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Enumeration;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -12,6 +13,12 @@ namespace FileMover
 {
     public class Service
     {
+        public class SourceFileEntry
+        {
+            public string FullPath { get; init; } = string.Empty;
+            public long Length { get; init; }
+        }
+
         public class InfraKmRange
         {
             public string Sub { get; set; } = string.Empty;
@@ -330,15 +337,8 @@ namespace FileMover
                 loadingForm.Shown += async (sender, e) =>
                 {
                     resultado = await Task.Run(() =>
-                        Directory.GetFiles(caminho, "*", SearchOption.AllDirectories)
-                            .Where(arquivo =>
-                            {
-                                FileAttributes atributos = File.GetAttributes(arquivo);
-                                bool ret = (atributos & FileAttributes.Hidden) == 0 &&
-                                           (atributos & FileAttributes.System) == 0;
-
-                                return ret;
-                            })
+                        EnumerateArquivosOrigem(caminho)
+                            .Select(arquivo => arquivo.FullPath)
                             .OrderBy(arquivo => arquivo, StringComparer.OrdinalIgnoreCase)
                             .ToArray());
 
@@ -349,6 +349,37 @@ namespace FileMover
             }
 
             return resultado;
+        }
+
+        public static IEnumerable<SourceFileEntry> EnumerateArquivosOrigem(string caminho)
+        {
+            return EnumerateSourceFiles(caminho);
+        }
+
+        private static IEnumerable<SourceFileEntry> EnumerateSourceFiles(string caminho)
+        {
+            EnumerationOptions options = new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                IgnoreInaccessible = false,
+                ReturnSpecialDirectories = false,
+                AttributesToSkip = 0
+            };
+
+            return new FileSystemEnumerable<SourceFileEntry>(
+                caminho,
+                static (ref FileSystemEntry entry) => new SourceFileEntry
+                {
+                    FullPath = entry.ToFullPath(),
+                    Length = entry.Length
+                },
+                options)
+            {
+                ShouldIncludePredicate = static (ref FileSystemEntry entry) =>
+                    !entry.IsDirectory &&
+                    (entry.Attributes & FileAttributes.Hidden) == 0 &&
+                    (entry.Attributes & FileAttributes.System) == 0
+            };
         }
 
         public static List<InfraKmRange> LoadInfraKmRanges(string planilhaPath)

@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 
@@ -21,8 +22,72 @@ namespace FileMoverApp
         private const int FileAttributeUnpinned = 0x00100000;
         private const int FileAttributeRecallOnOpen = 0x00040000;
         private const int FileAttributeRecallOnDataAccess = 0x00400000;
+        private const int GridLoadBatchSize = 100;
         private double requiredSpaceInMB = 0;
         private double requiredInfraSpaceInMB = 0;
+        private bool isDefaultGridLoading;
+        private bool isInfraGridLoading;
+        private readonly GridLoadTimer defaultLoadTimer = new GridLoadTimer();
+        private readonly GridLoadTimer infraLoadTimer = new GridLoadTimer();
+
+        private sealed class GridLoadTimer
+        {
+            public readonly Stopwatch Total = new Stopwatch();
+            public readonly Stopwatch GridApply = new Stopwatch();
+            public System.Windows.Forms.Timer Ticker;
+            public DataGridView Grid;
+        }
+
+        private sealed class DefaultGridLoadOptions
+        {
+            public string SourceFolder { get; init; } = string.Empty;
+            public string DestinationFolder { get; init; } = string.Empty;
+            public string LimitPathText { get; init; } = string.Empty;
+            public string LimitFileText { get; init; } = string.Empty;
+            public string YearFilter { get; init; } = string.Empty;
+            public string SubFilter { get; init; } = string.Empty;
+            public bool ShowAll { get; init; }
+            public bool ShowPending { get; init; }
+            public bool ShowCopied { get; init; }
+        }
+
+        private sealed class InfraGridLoadOptions
+        {
+            public string SourceFolder { get; init; } = string.Empty;
+            public string LimitPathText { get; init; } = string.Empty;
+            public string LimitFileText { get; init; } = string.Empty;
+            public string YearFilter { get; init; } = string.Empty;
+            public string SubFilter { get; init; } = string.Empty;
+            public bool ShowAll { get; init; }
+            public bool ShowPending { get; init; }
+            public bool ShowCopied { get; init; }
+        }
+
+        private sealed class DefaultGridRowData
+        {
+            public int Linha { get; init; }
+            public string Origem { get; init; } = string.Empty;
+            public string Destino { get; init; } = string.Empty;
+            public string Tamanho { get; init; } = string.Empty;
+            public bool Achou { get; init; }
+            public bool Ignorar { get; init; }
+            public bool IsDuplicate { get; init; }
+        }
+
+        private sealed class InfraGridRowData
+        {
+            public int Linha { get; init; }
+            public string Origem { get; init; } = string.Empty;
+            public string Destino { get; init; } = string.Empty;
+            public string Sub { get; init; } = string.Empty;
+            public string EquipInfra { get; init; } = string.Empty;
+            public string KmInicio { get; init; } = string.Empty;
+            public string KmFim { get; init; } = string.Empty;
+            public string Tamanho { get; init; } = string.Empty;
+            public bool Achou { get; init; }
+            public bool Ignorar { get; init; }
+            public bool IsDuplicate { get; init; }
+        }
 
         private sealed class FileProcessOutcome
         {
@@ -262,6 +327,13 @@ namespace FileMoverApp
                 return;
             }
 
+            if (isDefaultGridLoading)
+            {
+                MessageBox.Show("O carregamento da aba principal ainda está em andamento.", "Atenção",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
             try
             {
                 SaveLastValues();
@@ -300,6 +372,13 @@ namespace FileMoverApp
                 return;
             }
 
+            if (isDefaultGridLoading)
+            {
+                MessageBox.Show("Aguarde o carregamento do grid terminar antes de mover os arquivos.", "Atenção",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
             SaveLastValues();
             if (chkUseThread.Checked)
             {
@@ -320,6 +399,13 @@ namespace FileMoverApp
                 string.IsNullOrWhiteSpace(txtInfraDestinationFolder.Text))
             {
                 MessageBox.Show("Selecione a planilha e a pasta base da aba Infra.", "Atenção",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            if (isInfraGridLoading)
+            {
+                MessageBox.Show("O carregamento da aba Infra ainda está em andamento.", "Atenção",
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
@@ -348,6 +434,13 @@ namespace FileMoverApp
             if (string.IsNullOrWhiteSpace(txtInfraDestinationFolder.Text))
             {
                 MessageBox.Show("Selecione a pasta base da aba Infra.", "Atenção",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            if (isInfraGridLoading)
+            {
+                MessageBox.Show("Aguarde o carregamento do grid da aba Infra terminar antes de mover os arquivos.", "Atenção",
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
@@ -463,232 +556,383 @@ namespace FileMoverApp
 
         private void LoadDefaultGridCore()
         {
+            DefaultGridLoadOptions options = new DefaultGridLoadOptions
+            {
+                SourceFolder = txtSourceFolder.Text,
+                DestinationFolder = txtDestinationFolder.Text,
+                LimitPathText = txtLimitPath.Text,
+                LimitFileText = txtLimitFile.Text,
+                YearFilter = txtYear.Text,
+                SubFilter = txtSub.Text,
+                ShowAll = radioAll.Checked,
+                ShowPending = radioPending.Checked,
+                ShowCopied = radioCopied.Checked
+            };
+
             requiredSpaceInMB = 0;
             dataGridView.Rows.Clear();
+            SetGridLoadingState(progressBar, true);
+            SetDefaultGridLoadingState(true);
+            StartGridTiming(defaultLoadTimer, lblProgressInfo, dataGridView);
 
-            int totLimitPath = int.TryParse(txtLimitPath.Text, out int temp1) ? temp1 : 0;
-            int totLimitFile = int.TryParse(txtLimitFile.Text, out int temp2) ? temp2 : 0;
-            int linha = 0;
-            string subAux = "";
-
-            int posPathSource = txtSourceFolder.Text.Split('\\').Length;
-
-            progressBar.Maximum = 1;
-            progressBar.Value = 0;
-
-            string[] pathFiles = Service.GetArquivosOrigem(txtSourceFolder.Text);
-            if (pathFiles.Length == 0)
-            {
-                return;
-            }
-
-            progressBar.Maximum = Math.Max(1, totLimitFile == 0 ? pathFiles.Length : totLimitFile);
-
-            foreach (string pathFile in pathFiles)
-            {
-                if (totLimitFile == 0 && !string.IsNullOrWhiteSpace(txtLimitFile.Text))
-                {
-                    break;
-                }
-
-                string[] pathFilePart = pathFile.Split('\\');
-                string fileName = pathFilePart[^1];
-
-                (string sub, string km, string ano, string disciplina, string modalidade, string nomePastaFoto) =
-                    Service.ProcessPathParts(pathFilePart, posPathSource);
-
-                bool temSub = !string.IsNullOrEmpty(sub);
-                bool temKm = !string.IsNullOrEmpty(km);
-                bool temAno = !string.IsNullOrEmpty(ano);
-                bool temDisciplina = !string.IsNullOrEmpty(disciplina);
-
-                string pathDisciplinaDestino = Service.getPathDisciplinaDestino(disciplina);
-                string fileNameDestination = Path.Combine(txtDestinationFolder.Text, pathDisciplinaDestino, sub, km, modalidade, ano, nomePastaFoto, fileName);
-                bool isDuplicateDefault = File.Exists(fileNameDestination);
-                if (isDuplicateDefault)
-                    fileNameDestination = GetUniqueDestinationPath(fileNameDestination);
-                bool achou = File.Exists(fileNameDestination);
-
-                if (temSub && temKm && temAno && temDisciplina)
-                {
-                    double tamanhoBytes = new FileInfo(pathFile).Length;
-                    string tamanhoFileSource = Service.getTamanhoFile(tamanhoBytes);
-
-                    if (Service.validaSubMalhaSul(sub) &&
-                        ((radioAll.Checked) || (!achou && radioPending.Checked) || (achou && radioCopied.Checked)) &&
-                        ano.Contains(txtYear.Text) &&
-                        sub.Contains(txtSub.Text, StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (!string.IsNullOrWhiteSpace(txtLimitFile.Text))
-                        {
-                            totLimitFile--;
-                        }
-
-                        if (sub != subAux)
-                        {
-                            subAux = sub;
-
-                            if (!string.IsNullOrWhiteSpace(txtLimitPath.Text))
-                            {
-                                totLimitPath--;
-
-                                if (totLimitPath < 0)
-                                {
-                                    break;
-                                }
-                            }
-                        }
-
-                        requiredSpaceInMB += tamanhoBytes / (1024.0 * 1024.0);
-                        linha++;
-                        AddRowToGrid(dataGridView, linha, pathFile, fileNameDestination, tamanhoFileSource, achou, false, isDuplicateDefault);
-                        AdvanceProgress(progressBar);
-                    }
-                }
-                else if (!radioPending.Checked && !radioCopied.Checked)
-                {
-                    if (!string.IsNullOrWhiteSpace(txtLimitFile.Text))
-                    {
-                        totLimitFile--;
-                    }
-
-                    linha++;
-                    AddRowToGrid(dataGridView, linha, pathFile, "", "", achou, true);
-                    AdvanceProgress(progressBar);
-                }
-            }
+            _ = Task.Run(() => StreamDefaultGrid(options));
         }
 
         private void LoadInfraGridCore(System.Collections.Generic.List<Service.InfraKmRange> ranges)
         {
+            InfraGridLoadOptions options = new InfraGridLoadOptions
+            {
+                SourceFolder = txtInfraDestinationFolder.Text,
+                LimitPathText = txtInfraLimitPath.Text,
+                LimitFileText = txtInfraLimitFile.Text,
+                YearFilter = txtInfraYear.Text,
+                SubFilter = txtInfraSub.Text,
+                ShowAll = radioInfraAll.Checked,
+                ShowPending = radioInfraPending.Checked,
+                ShowCopied = radioInfraCopied.Checked
+            };
+
             requiredInfraSpaceInMB = 0;
             dataGridViewInfra.Rows.Clear();
-            progressBarInfra.Maximum = 1;
-            progressBarInfra.Value = 0;
-            int totLimitPath = int.TryParse(txtInfraLimitPath.Text, out int temp1) ? temp1 : 0;
-            int totLimitFile = int.TryParse(txtInfraLimitFile.Text, out int temp2) ? temp2 : 0;
-            string pathAux = "";
+            SetGridLoadingState(progressBarInfra, true);
+            SetInfraGridLoadingState(true);
+            StartGridTiming(infraLoadTimer, lblProgressInfoInfra, dataGridViewInfra);
 
-            string[] pathFiles = Service.GetArquivosOrigem(txtInfraDestinationFolder.Text);
-            if (pathFiles.Length == 0)
-            {
-                return;
-            }
+            _ = Task.Run(() => StreamInfraGrid(options, ranges));
+        }
 
-            progressBarInfra.Maximum = Math.Max(1, totLimitFile == 0 ? pathFiles.Length : totLimitFile);
+        private void StreamDefaultGrid(DefaultGridLoadOptions options)
+        {
+            double requiredSpace = 0;
             int linha = 0;
 
-            foreach (string pathFile in pathFiles)
+            try
             {
-                if (totLimitFile == 0 && !string.IsNullOrWhiteSpace(txtInfraLimitFile.Text))
+                int totLimitPath = int.TryParse(options.LimitPathText, out int temp1) ? temp1 : 0;
+                int totLimitFile = int.TryParse(options.LimitFileText, out int temp2) ? temp2 : 0;
+                string subAux = string.Empty;
+                int posPathSource = options.SourceFolder.Split('\\').Length;
+                List<DefaultGridRowData> pendingRows = new List<DefaultGridRowData>(GridLoadBatchSize);
+
+                foreach (Service.SourceFileEntry sourceFile in Service.EnumerateArquivosOrigem(options.SourceFolder))
                 {
-                    break;
-                }
-
-                string relativePath = Path.GetRelativePath(txtInfraDestinationFolder.Text, pathFile);
-                string[] relativeParts = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                string sourceSub = Service.ExtractSub(relativeParts, 0);
-                string kmFolder = Service.ExtractKm(relativeParts, 0);
-                string currentEquipInfra = GetCurrentInfraFolder(relativeParts);
-                string ano = Service.ExtractYear(relativeParts, 0);
-                string destination = "";
-                string sub = "";
-                string equipInfra = "";
-                string kmInicio = "";
-                string kmFim = "";
-                bool achou = false;
-                bool valido = false;
-                bool isDuplicateInfra = false;
-
-                Service.InfraKmRange range = null;
-
-                bool encontrouRangePorKm = !string.IsNullOrWhiteSpace(sourceSub) &&
-                                           !string.IsNullOrWhiteSpace(kmFolder) &&
-                                           Service.TryFindInfraKmRange(sourceSub, kmFolder, ranges, out range);
-
-                bool encontrouRangePorEquip = !encontrouRangePorKm &&
-                                              !string.IsNullOrWhiteSpace(sourceSub) &&
-                                              !string.IsNullOrWhiteSpace(currentEquipInfra) &&
-                                              Service.TryFindInfraRangeByEquip(sourceSub, currentEquipInfra, ranges, out range);
-
-                if (encontrouRangePorKm || encontrouRangePorEquip)
-                {
-                    sub = range.Sub;
-                    equipInfra = range.EquipInfra;
-                    kmInicio = FormatInfraKm(range.KmInicio);
-                    kmFim = FormatInfraKm(range.KmFim);
-                    string[] destinationParts = relativeParts.ToArray();
-
-                    for (int i = 0; i < destinationParts.Length; i++)
+                    if (totLimitFile == 0 && !string.IsNullOrWhiteSpace(options.LimitFileText))
                     {
-                        if (destinationParts[i].StartsWith("km", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(SanitizePathSegment(destinationParts[i]), SanitizePathSegment(currentEquipInfra), StringComparison.OrdinalIgnoreCase))
-                        {
-                            destinationParts[i] = SanitizePathSegment(equipInfra);
-                            break;
-                        }
+                        break;
                     }
 
-                    destination = Path.Combine(new[] { txtInfraDestinationFolder.Text }.Concat(destinationParts).ToArray());
-                    bool infraOriginalExists = !PathsAreEquivalent(pathFile, destination) && File.Exists(destination);
-                    isDuplicateInfra = infraOriginalExists;
-                    if (isDuplicateInfra)
-                        destination = GetUniqueDestinationPath(destination);
-                    achou = PathsAreEquivalent(pathFile, destination) || File.Exists(destination);
-                    valido = true;
-                }
+                    string pathFile = sourceFile.FullPath;
+                    string[] pathFilePart = pathFile.Split('\\');
+                    string fileName = pathFilePart[^1];
 
-                double tamanhoBytes = new FileInfo(pathFile).Length;
-                string tamanho = Service.getTamanhoFile(tamanhoBytes);
+                    (string sub, string km, string ano, string disciplina, string modalidade, string nomePastaFoto) =
+                        Service.ProcessPathParts(pathFilePart, posPathSource);
 
-                if (valido)
-                {
-                    bool statusCompativel = radioInfraAll.Checked ||
-                                            (!achou && radioInfraPending.Checked) ||
-                                            (achou && radioInfraCopied.Checked);
+                    bool temSub = !string.IsNullOrEmpty(sub);
+                    bool temKm = !string.IsNullOrEmpty(km);
+                    bool temAno = !string.IsNullOrEmpty(ano);
+                    bool temDisciplina = !string.IsNullOrEmpty(disciplina);
 
-                    if (statusCompativel &&
-                        ano.Contains(txtInfraYear.Text) &&
-                        sub.Contains(txtInfraSub.Text, StringComparison.OrdinalIgnoreCase))
+                    if (temSub && temKm && temAno && temDisciplina)
                     {
-                        if (!string.IsNullOrWhiteSpace(txtInfraLimitFile.Text))
+                        // Filtros em memoria (Sub Malha Sul / Ano / Sub) antes de qualquer
+                        // acesso a disco: evita milhares de File.Exists em arquivos que
+                        // serao descartados (decisivo quando o destino esta na nuvem/rede).
+                        if (!Service.validaSubMalhaSul(sub) ||
+                            !ano.Contains(options.YearFilter) ||
+                            !sub.Contains(options.SubFilter, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        // So agora calcula o destino e checa o disco.
+                        string pathDisciplinaDestino = Service.getPathDisciplinaDestino(disciplina);
+                        string fileNameDestination = Path.Combine(options.DestinationFolder, pathDisciplinaDestino, sub, km, modalidade, ano, nomePastaFoto, fileName);
+                        bool isDuplicateDefault = File.Exists(fileNameDestination);
+                        if (isDuplicateDefault)
+                        {
+                            fileNameDestination = GetUniqueDestinationPath(fileNameDestination);
+                        }
+
+                        bool achou = File.Exists(fileNameDestination);
+
+                        double tamanhoBytes = sourceFile.Length;
+                        string tamanhoFileSource = Service.getTamanhoFile(tamanhoBytes);
+
+                        if (options.ShowAll || (!achou && options.ShowPending) || (achou && options.ShowCopied))
+                        {
+                            if (!string.IsNullOrWhiteSpace(options.LimitFileText))
+                            {
+                                totLimitFile--;
+                            }
+
+                            if (sub != subAux)
+                            {
+                                subAux = sub;
+
+                                if (!string.IsNullOrWhiteSpace(options.LimitPathText))
+                                {
+                                    totLimitPath--;
+
+                                    if (totLimitPath < 0)
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+
+                            requiredSpace += tamanhoBytes / (1024.0 * 1024.0);
+                            linha++;
+                            pendingRows.Add(new DefaultGridRowData
+                            {
+                                Linha = linha,
+                                Origem = pathFile,
+                                Destino = fileNameDestination,
+                                Tamanho = tamanhoFileSource,
+                                Achou = achou,
+                                Ignorar = false,
+                                IsDuplicate = isDuplicateDefault
+                            });
+
+                            FlushDefaultGridBatch(pendingRows);
+                        }
+                    }
+                    else if (!options.ShowPending && !options.ShowCopied)
+                    {
+                        if (!string.IsNullOrWhiteSpace(options.LimitFileText))
                         {
                             totLimitFile--;
                         }
 
-                        string currentPath = BuildInfraGroupKey(relativeParts);
-                        if (currentPath != pathAux)
+                        linha++;
+                        pendingRows.Add(new DefaultGridRowData
                         {
-                            pathAux = currentPath;
+                            Linha = linha,
+                            Origem = pathFile,
+                            Ignorar = true
+                        });
 
-                            if (!string.IsNullOrWhiteSpace(txtInfraLimitPath.Text))
+                        FlushDefaultGridBatch(pendingRows);
+                    }
+                }
+
+                FlushDefaultGridBatch(pendingRows, force: true);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                ShowOwnedMessage($"Erro de permissão: {ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (IOException ex)
+            {
+                ShowOwnedMessage($"Erro de entrada/saída: {ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                ShowOwnedMessage($"Erro inesperado ao carregar o grid: {ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                RunOnUiThread(() =>
+                {
+                    requiredSpaceInMB = requiredSpace;
+                    CompleteGridLoading(progressBar, linha);
+                    StopGridTiming(defaultLoadTimer, lblProgressInfo);
+                    SetDefaultGridLoadingState(false);
+                });
+            }
+        }
+
+        private void StreamInfraGrid(InfraGridLoadOptions options, List<Service.InfraKmRange> ranges)
+        {
+            double requiredSpace = 0;
+            int linha = 0;
+
+            try
+            {
+                int totLimitPath = int.TryParse(options.LimitPathText, out int temp1) ? temp1 : 0;
+                int totLimitFile = int.TryParse(options.LimitFileText, out int temp2) ? temp2 : 0;
+                string pathAux = string.Empty;
+                List<InfraGridRowData> pendingRows = new List<InfraGridRowData>(GridLoadBatchSize);
+
+                IEnumerable<Service.SourceFileEntry> sourceFiles =
+                    ResolveInfraSearchRoots(options.SourceFolder, options.SubFilter)
+                        .SelectMany(searchRoot => Service.EnumerateArquivosOrigem(searchRoot));
+
+                foreach (Service.SourceFileEntry sourceFile in sourceFiles)
+                {
+                    if (totLimitFile == 0 && !string.IsNullOrWhiteSpace(options.LimitFileText))
+                    {
+                        break;
+                    }
+
+                    string pathFile = sourceFile.FullPath;
+                    string relativePath = Path.GetRelativePath(options.SourceFolder, pathFile);
+                    string[] relativeParts = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    string sourceSub = Service.ExtractSub(relativeParts, 0);
+                    string kmFolder = Service.ExtractKm(relativeParts, 0);
+                    string currentEquipInfra = GetCurrentInfraFolder(relativeParts);
+                    string ano = Service.ExtractYear(relativeParts, 0);
+                    string destination = string.Empty;
+                    string sub = string.Empty;
+                    string equipInfra = string.Empty;
+                    string kmInicio = string.Empty;
+                    string kmFim = string.Empty;
+                    bool achou = false;
+                    bool valido = false;
+                    bool isDuplicateInfra = false;
+
+                    Service.InfraKmRange range = null;
+
+                    bool encontrouRangePorKm = !string.IsNullOrWhiteSpace(sourceSub) &&
+                                               !string.IsNullOrWhiteSpace(kmFolder) &&
+                                               Service.TryFindInfraKmRange(sourceSub, kmFolder, ranges, out range);
+
+                    bool encontrouRangePorEquip = !encontrouRangePorKm &&
+                                                  !string.IsNullOrWhiteSpace(sourceSub) &&
+                                                  !string.IsNullOrWhiteSpace(currentEquipInfra) &&
+                                                  Service.TryFindInfraRangeByEquip(sourceSub, currentEquipInfra, ranges, out range);
+
+                    if (encontrouRangePorKm || encontrouRangePorEquip)
+                    {
+                        sub = range.Sub;
+                        equipInfra = range.EquipInfra;
+                        kmInicio = FormatInfraKm(range.KmInicio);
+                        kmFim = FormatInfraKm(range.KmFim);
+                        valido = true;
+                    }
+
+                    double tamanhoBytes = sourceFile.Length;
+                    string tamanho = Service.getTamanhoFile(tamanhoBytes);
+
+                    if (valido)
+                    {
+                        // Filtros em memoria (Ano/Sub) antes de qualquer acesso a disco:
+                        // evita milhares de File.Exists em arquivos que serao descartados
+                        // (decisivo quando a pasta base esta na nuvem/rede).
+                        if (!ano.Contains(options.YearFilter) ||
+                            !sub.Contains(options.SubFilter, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        // So agora calcula o destino e checa o disco, apenas para os
+                        // arquivos que ja passaram nos filtros acima.
+                        string[] destinationParts = relativeParts.ToArray();
+
+                        for (int i = 0; i < destinationParts.Length; i++)
+                        {
+                            if (destinationParts[i].StartsWith("km", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(SanitizePathSegment(destinationParts[i]), SanitizePathSegment(currentEquipInfra), StringComparison.OrdinalIgnoreCase))
                             {
-                                totLimitPath--;
-
-                                if (totLimitPath < 0)
-                                {
-                                    break;
-                                }
+                                destinationParts[i] = SanitizePathSegment(equipInfra);
+                                break;
                             }
                         }
 
-                        requiredInfraSpaceInMB += tamanhoBytes / (1024.0 * 1024.0);
-                        linha++;
-                        AddRowToInfraGrid(linha, pathFile, destination, sub, equipInfra, kmInicio, kmFim, tamanho, achou, false, isDuplicateInfra);
-                        AdvanceProgress(progressBarInfra);
-                    }
-                }
-                else if (!radioInfraPending.Checked && !radioInfraCopied.Checked)
-                {
-                    if (!string.IsNullOrWhiteSpace(txtInfraLimitFile.Text))
-                    {
-                        totLimitFile--;
-                    }
+                        destination = Path.Combine(new[] { options.SourceFolder }.Concat(destinationParts).ToArray());
+                        bool infraOriginalExists = !PathsAreEquivalent(pathFile, destination) && File.Exists(destination);
+                        isDuplicateInfra = infraOriginalExists;
+                        if (isDuplicateInfra)
+                        {
+                            destination = GetUniqueDestinationPath(destination);
+                        }
 
-                    linha++;
-                    AddRowToInfraGrid(linha, pathFile, "", sub, equipInfra, kmInicio, kmFim, tamanho, false, true);
-                    AdvanceProgress(progressBarInfra);
+                        achou = PathsAreEquivalent(pathFile, destination) || File.Exists(destination);
+
+                        bool statusCompativel = options.ShowAll ||
+                                                (!achou && options.ShowPending) ||
+                                                (achou && options.ShowCopied);
+
+                        if (statusCompativel)
+                        {
+                            if (!string.IsNullOrWhiteSpace(options.LimitFileText))
+                            {
+                                totLimitFile--;
+                            }
+
+                            string currentPath = BuildInfraGroupKey(relativeParts);
+                            if (currentPath != pathAux)
+                            {
+                                pathAux = currentPath;
+
+                                if (!string.IsNullOrWhiteSpace(options.LimitPathText))
+                                {
+                                    totLimitPath--;
+
+                                    if (totLimitPath < 0)
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+
+                            requiredSpace += tamanhoBytes / (1024.0 * 1024.0);
+                            linha++;
+                            pendingRows.Add(new InfraGridRowData
+                            {
+                                Linha = linha,
+                                Origem = pathFile,
+                                Destino = destination,
+                                Sub = sub,
+                                EquipInfra = equipInfra,
+                                KmInicio = kmInicio,
+                                KmFim = kmFim,
+                                Tamanho = tamanho,
+                                Achou = achou,
+                                Ignorar = false,
+                                IsDuplicate = isDuplicateInfra
+                            });
+
+                            FlushInfraGridBatch(pendingRows);
+                        }
+                    }
+                    else if (!options.ShowPending && !options.ShowCopied)
+                    {
+                        if (!string.IsNullOrWhiteSpace(options.LimitFileText))
+                        {
+                            totLimitFile--;
+                        }
+
+                        linha++;
+                        pendingRows.Add(new InfraGridRowData
+                        {
+                            Linha = linha,
+                            Origem = pathFile,
+                            Sub = sub,
+                            EquipInfra = equipInfra,
+                            KmInicio = kmInicio,
+                            KmFim = kmFim,
+                            Tamanho = tamanho,
+                            Ignorar = true
+                        });
+
+                        FlushInfraGridBatch(pendingRows);
+                    }
                 }
+
+                FlushInfraGridBatch(pendingRows, force: true);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                ShowOwnedMessage($"Erro de permissão: {ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (IOException ex)
+            {
+                ShowOwnedMessage($"Erro de entrada/saída: {ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                ShowOwnedMessage($"Erro inesperado ao carregar a aba Infra: {ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                RunOnUiThread(() =>
+                {
+                    requiredInfraSpaceInMB = requiredSpace;
+                    CompleteGridLoading(progressBarInfra, linha);
+                    StopGridTiming(infraLoadTimer, lblProgressInfoInfra);
+                    SetInfraGridLoadingState(false);
+                });
             }
         }
 
@@ -747,6 +991,34 @@ namespace FileMoverApp
                     AdvanceProgress(progressBarEquipment);
                 }
             }
+        }
+
+        private static IEnumerable<string> ResolveInfraSearchRoots(string baseFolder, string subFilter)
+        {
+            // Sem filtro de Sub (ou base inacessivel): mantem a varredura completa.
+            if (string.IsNullOrWhiteSpace(subFilter) || !Directory.Exists(baseFolder))
+            {
+                return new[] { baseFolder };
+            }
+
+            string[] childDirectories;
+            try
+            {
+                childDirectories = Directory.GetDirectories(baseFolder);
+            }
+            catch (Exception)
+            {
+                return new[] { baseFolder };
+            }
+
+            // Restringe a varredura as subpastas (ex.: "Sub 37") que casam com o filtro,
+            // evitando percorrer as demais subs na nuvem/rede.
+            List<string> matches = childDirectories
+                .Where(directory => Path.GetFileName(directory)
+                    .Contains(subFilter, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            return matches.Count > 0 ? matches : new[] { baseFolder };
         }
 
         private static string BuildInfraGroupKey(string[] relativeParts)
@@ -831,6 +1103,68 @@ namespace FileMoverApp
             return string.Empty;
         }
 
+        private void FlushDefaultGridBatch(List<DefaultGridRowData> pendingRows, bool force = false)
+        {
+            if (pendingRows.Count == 0 || (!force && pendingRows.Count < GridLoadBatchSize))
+            {
+                return;
+            }
+
+            DefaultGridRowData[] batch = pendingRows.ToArray();
+            pendingRows.Clear();
+
+            RunOnUiThread(() => ApplyDefaultGridBatch(batch));
+        }
+
+        private void FlushInfraGridBatch(List<InfraGridRowData> pendingRows, bool force = false)
+        {
+            if (pendingRows.Count == 0 || (!force && pendingRows.Count < GridLoadBatchSize))
+            {
+                return;
+            }
+
+            InfraGridRowData[] batch = pendingRows.ToArray();
+            pendingRows.Clear();
+
+            RunOnUiThread(() => ApplyInfraGridBatch(batch));
+        }
+
+        private void ApplyDefaultGridBatch(IEnumerable<DefaultGridRowData> batch)
+        {
+            defaultLoadTimer.GridApply.Start();
+            dataGridView.SuspendLayout();
+            try
+            {
+                foreach (DefaultGridRowData row in batch)
+                {
+                    AddRowToGrid(dataGridView, row.Linha, row.Origem, row.Destino, row.Tamanho, row.Achou, row.Ignorar, row.IsDuplicate);
+                }
+            }
+            finally
+            {
+                dataGridView.ResumeLayout();
+                defaultLoadTimer.GridApply.Stop();
+            }
+        }
+
+        private void ApplyInfraGridBatch(IEnumerable<InfraGridRowData> batch)
+        {
+            infraLoadTimer.GridApply.Start();
+            dataGridViewInfra.SuspendLayout();
+            try
+            {
+                foreach (InfraGridRowData row in batch)
+                {
+                    AddRowToInfraGrid(row.Linha, row.Origem, row.Destino, row.Sub, row.EquipInfra, row.KmInicio, row.KmFim, row.Tamanho, row.Achou, row.Ignorar, row.IsDuplicate);
+                }
+            }
+            finally
+            {
+                dataGridViewInfra.ResumeLayout();
+                infraLoadTimer.GridApply.Stop();
+            }
+        }
+
         private static void AddRowToGrid(DataGridView grid, int linha, string origem, string destino, string tamanho, bool achou, bool ignorar, bool isDuplicate = false)
         {
             int rowIndex = grid.Rows.Add(linha, origem, destino, tamanho);
@@ -856,6 +1190,90 @@ namespace FileMoverApp
             string status = ignorar ? "Ignorado" : achou ? "Ja existe" : "Pendente";
             int rowIndex = dataGridViewEquipment.Rows.Add(linha, destino, sub, equipInfra, kmInicio, kmFim, status);
             dataGridViewEquipment.Rows[rowIndex].DefaultCellStyle.BackColor = ignorar ? Color.Orange : achou ? Color.Green : Color.Tomato;
+        }
+
+        private void SetDefaultGridLoadingState(bool isLoading)
+        {
+            isDefaultGridLoading = isLoading;
+            btnLoadGrid.Enabled = !isLoading;
+            btnMoveFiles.Enabled = !isLoading;
+        }
+
+        private void SetInfraGridLoadingState(bool isLoading)
+        {
+            isInfraGridLoading = isLoading;
+            btnInfraLoadGrid.Enabled = !isLoading;
+            btnInfraMoveFiles.Enabled = !isLoading;
+        }
+
+        private static void SetGridLoadingState(ProgressBar progressBarControl, bool isLoading)
+        {
+            if (isLoading)
+            {
+                progressBarControl.Maximum = 1;
+                progressBarControl.Value = 0;
+                progressBarControl.Style = ProgressBarStyle.Marquee;
+                progressBarControl.MarqueeAnimationSpeed = 30;
+                return;
+            }
+
+            progressBarControl.MarqueeAnimationSpeed = 0;
+            progressBarControl.Style = ProgressBarStyle.Blocks;
+        }
+
+        private static void CompleteGridLoading(ProgressBar progressBarControl, int finalCount)
+        {
+            progressBarControl.MarqueeAnimationSpeed = 0;
+            progressBarControl.Style = ProgressBarStyle.Blocks;
+            progressBarControl.Maximum = Math.Max(1, finalCount);
+            progressBarControl.Value = finalCount == 0 ? 0 : progressBarControl.Maximum;
+        }
+
+        private void StartGridTiming(GridLoadTimer timing, Label infoLabel, DataGridView grid)
+        {
+            timing.Grid = grid;
+            timing.Total.Restart();
+            timing.GridApply.Reset();
+
+            timing.Ticker?.Stop();
+            timing.Ticker?.Dispose();
+            timing.Ticker = new System.Windows.Forms.Timer { Interval = 250 };
+            timing.Ticker.Tick += (_, _) => UpdateGridTimingLabel(timing, infoLabel, false);
+            timing.Ticker.Start();
+
+            UpdateGridTimingLabel(timing, infoLabel, false);
+        }
+
+        private void StopGridTiming(GridLoadTimer timing, Label infoLabel)
+        {
+            timing.Total.Stop();
+            timing.Ticker?.Stop();
+            timing.Ticker?.Dispose();
+            timing.Ticker = null;
+
+            UpdateGridTimingLabel(timing, infoLabel, true);
+        }
+
+        private static void UpdateGridTimingLabel(GridLoadTimer timing, Label infoLabel, bool finished)
+        {
+            TimeSpan total = timing.Total.Elapsed;
+            TimeSpan grid = timing.GridApply.Elapsed;
+            TimeSpan files = total - grid;
+            if (files < TimeSpan.Zero)
+            {
+                files = TimeSpan.Zero;
+            }
+
+            int loadedCount = timing.Grid?.Rows.Count ?? 0;
+            string prefix = finished ? "Concluido" : "Carregando";
+            infoLabel.Text = $"{prefix}  |  Arquivos: {loadedCount}  |  Leitura: {FormatDuration(files)}  |  Grid: {FormatDuration(grid)}  |  Total: {FormatDuration(total)}";
+        }
+
+        private static string FormatDuration(TimeSpan value)
+        {
+            return value.TotalMinutes >= 1
+                ? $"{(int)value.TotalMinutes}m {value.Seconds:00}s"
+                : $"{value.TotalSeconds:0.0}s";
         }
 
         private static void AdvanceProgress(ProgressBar progressBarControl)

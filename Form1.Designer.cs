@@ -37,6 +37,7 @@ namespace FileMoverApp
             label2 = new System.Windows.Forms.Label();
             label1 = new System.Windows.Forms.Label();
             progressBar = new System.Windows.Forms.ProgressBar();
+            lblProgressInfo = new System.Windows.Forms.Label();
             btnMoveFiles = new System.Windows.Forms.Button();
             btnLoadGrid = new System.Windows.Forms.Button();
             dataGridView = new System.Windows.Forms.DataGridView();
@@ -68,6 +69,7 @@ namespace FileMoverApp
             btnInfraSelectSpreadsheet = new System.Windows.Forms.Button();
             labelInfraDestino = new System.Windows.Forms.Label();
             progressBarInfra = new System.Windows.Forms.ProgressBar();
+            lblProgressInfoInfra = new System.Windows.Forms.Label();
             btnInfraMoveFiles = new System.Windows.Forms.Button();
             btnInfraLoadGrid = new System.Windows.Forms.Button();
             btnInfraExportGrid = new System.Windows.Forms.Button();
@@ -198,9 +200,9 @@ namespace FileMoverApp
             groupBox1.Controls.Add(radioAll);
             groupBox1.Controls.Add(radioPending);
             groupBox1.Controls.Add(chkUseThread);
-            groupBox1.Location = new System.Drawing.Point(868, 6);
+            groupBox1.Location = new System.Drawing.Point(813, 6);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new System.Drawing.Size(487, 90);
+            groupBox1.Size = new System.Drawing.Size(542, 90);
             groupBox1.TabIndex = 13;
             groupBox1.TabStop = false;
             groupBox1.Text = "Filtros";
@@ -244,7 +246,7 @@ namespace FileMoverApp
             // radioIngnored
             // 
             radioIngnored.AutoSize = true;
-            radioIngnored.Location = new System.Drawing.Point(298, 61);
+            radioIngnored.Location = new System.Drawing.Point(348, 60);
             radioIngnored.Name = "radioIngnored";
             radioIngnored.Size = new System.Drawing.Size(78, 19);
             radioIngnored.TabIndex = 16;
@@ -275,7 +277,7 @@ namespace FileMoverApp
             // radioCopied
             // 
             radioCopied.AutoSize = true;
-            radioCopied.Location = new System.Drawing.Point(188, 61);
+            radioCopied.Location = new System.Drawing.Point(233, 60);
             radioCopied.Name = "radioCopied";
             radioCopied.Size = new System.Drawing.Size(75, 19);
             radioCopied.TabIndex = 15;
@@ -293,7 +295,7 @@ namespace FileMoverApp
             // 
             radioAll.AutoSize = true;
             radioAll.Checked = true;
-            radioAll.Location = new System.Drawing.Point(6, 61);
+            radioAll.Location = new System.Drawing.Point(6, 60);
             radioAll.Name = "radioAll";
             radioAll.Size = new System.Drawing.Size(57, 19);
             radioAll.TabIndex = 13;
@@ -304,7 +306,7 @@ namespace FileMoverApp
             // radioPending
             // 
             radioPending.AutoSize = true;
-            radioPending.Location = new System.Drawing.Point(84, 61);
+            radioPending.Location = new System.Drawing.Point(116, 60);
             radioPending.Name = "radioPending";
             radioPending.Size = new System.Drawing.Size(80, 19);
             radioPending.TabIndex = 14;
@@ -316,7 +318,7 @@ namespace FileMoverApp
             chkUseThread.AutoSize = true;
             chkUseThread.Checked = true;
             chkUseThread.CheckState = System.Windows.Forms.CheckState.Checked;
-            chkUseThread.Location = new System.Drawing.Point(418, 61);
+            chkUseThread.Location = new System.Drawing.Point(473, 60);
             chkUseThread.Name = "chkUseThread";
             chkUseThread.Size = new System.Drawing.Size(63, 19);
             chkUseThread.TabIndex = 21;
@@ -348,7 +350,17 @@ namespace FileMoverApp
             progressBar.Name = "progressBar";
             progressBar.Size = new System.Drawing.Size(866, 34);
             progressBar.TabIndex = 7;
-            // 
+            progressBar.Controls.Add(lblProgressInfo);
+            //
+            // lblProgressInfo
+            //
+            lblProgressInfo.BackColor = System.Drawing.Color.Transparent;
+            lblProgressInfo.Dock = System.Windows.Forms.DockStyle.Fill;
+            lblProgressInfo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            lblProgressInfo.Name = "lblProgressInfo";
+            lblProgressInfo.Text = "";
+            lblProgressInfo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            //
             // btnMoveFiles
             // 
             btnMoveFiles.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
@@ -418,7 +430,7 @@ namespace FileMoverApp
             txtDestinationFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtDestinationFolder.Location = new System.Drawing.Point(80, 61);
             txtDestinationFolder.Name = "txtDestinationFolder";
-            txtDestinationFolder.Size = new System.Drawing.Size(616, 23);
+            txtDestinationFolder.Size = new System.Drawing.Size(561, 23);
             txtDestinationFolder.TabIndex = 3;
             // 
             // txtSourceFolder
@@ -426,13 +438,13 @@ namespace FileMoverApp
             txtSourceFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtSourceFolder.Location = new System.Drawing.Point(80, 26);
             txtSourceFolder.Name = "txtSourceFolder";
-            txtSourceFolder.Size = new System.Drawing.Size(616, 23);
+            txtSourceFolder.Size = new System.Drawing.Size(561, 23);
             txtSourceFolder.TabIndex = 2;
             // 
             // btnSelectDestination
             // 
             btnSelectDestination.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnSelectDestination.Location = new System.Drawing.Point(702, 59);
+            btnSelectDestination.Location = new System.Drawing.Point(647, 59);
             btnSelectDestination.Name = "btnSelectDestination";
             btnSelectDestination.Size = new System.Drawing.Size(160, 28);
             btnSelectDestination.TabIndex = 1;
@@ -443,7 +455,7 @@ namespace FileMoverApp
             // btnSelectSource
             // 
             btnSelectSource.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnSelectSource.Location = new System.Drawing.Point(702, 24);
+            btnSelectSource.Location = new System.Drawing.Point(647, 25);
             btnSelectSource.Name = "btnSelectSource";
             btnSelectSource.Size = new System.Drawing.Size(160, 28);
             btnSelectSource.TabIndex = 0;
@@ -489,9 +501,9 @@ namespace FileMoverApp
             groupBoxInfra.Controls.Add(radioInfraAll);
             groupBoxInfra.Controls.Add(radioInfraPending);
             groupBoxInfra.Controls.Add(chkInfraUseThread);
-            groupBoxInfra.Location = new System.Drawing.Point(868, 22);
+            groupBoxInfra.Location = new System.Drawing.Point(808, 22);
             groupBoxInfra.Name = "groupBoxInfra";
-            groupBoxInfra.Size = new System.Drawing.Size(487, 90);
+            groupBoxInfra.Size = new System.Drawing.Size(547, 90);
             groupBoxInfra.TabIndex = 13;
             groupBoxInfra.TabStop = false;
             groupBoxInfra.Text = "Filtros";
@@ -535,7 +547,7 @@ namespace FileMoverApp
             // radioInfraIgnored
             // 
             radioInfraIgnored.AutoSize = true;
-            radioInfraIgnored.Location = new System.Drawing.Point(313, 61);
+            radioInfraIgnored.Location = new System.Drawing.Point(360, 61);
             radioInfraIgnored.Name = "radioInfraIgnored";
             radioInfraIgnored.Size = new System.Drawing.Size(78, 19);
             radioInfraIgnored.TabIndex = 16;
@@ -566,7 +578,7 @@ namespace FileMoverApp
             // radioInfraCopied
             // 
             radioInfraCopied.AutoSize = true;
-            radioInfraCopied.Location = new System.Drawing.Point(206, 61);
+            radioInfraCopied.Location = new System.Drawing.Point(231, 61);
             radioInfraCopied.Name = "radioInfraCopied";
             radioInfraCopied.Size = new System.Drawing.Size(75, 19);
             radioInfraCopied.TabIndex = 15;
@@ -595,7 +607,7 @@ namespace FileMoverApp
             // radioInfraPending
             // 
             radioInfraPending.AutoSize = true;
-            radioInfraPending.Location = new System.Drawing.Point(92, 61);
+            radioInfraPending.Location = new System.Drawing.Point(102, 61);
             radioInfraPending.Name = "radioInfraPending";
             radioInfraPending.Size = new System.Drawing.Size(80, 19);
             radioInfraPending.TabIndex = 14;
@@ -607,7 +619,7 @@ namespace FileMoverApp
             chkInfraUseThread.AutoSize = true;
             chkInfraUseThread.Checked = true;
             chkInfraUseThread.CheckState = System.Windows.Forms.CheckState.Checked;
-            chkInfraUseThread.Location = new System.Drawing.Point(397, 61);
+            chkInfraUseThread.Location = new System.Drawing.Point(478, 61);
             chkInfraUseThread.Name = "chkInfraUseThread";
             chkInfraUseThread.Size = new System.Drawing.Size(63, 19);
             chkInfraUseThread.TabIndex = 21;
@@ -628,13 +640,13 @@ namespace FileMoverApp
             txtInfraSpreadsheet.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtInfraSpreadsheet.Location = new System.Drawing.Point(80, 26);
             txtInfraSpreadsheet.Name = "txtInfraSpreadsheet";
-            txtInfraSpreadsheet.Size = new System.Drawing.Size(616, 23);
+            txtInfraSpreadsheet.Size = new System.Drawing.Size(574, 23);
             txtInfraSpreadsheet.TabIndex = 11;
             // 
             // btnInfraSelectSpreadsheet
             // 
             btnInfraSelectSpreadsheet.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnInfraSelectSpreadsheet.Location = new System.Drawing.Point(702, 22);
+            btnInfraSelectSpreadsheet.Location = new System.Drawing.Point(660, 22);
             btnInfraSelectSpreadsheet.Name = "btnInfraSelectSpreadsheet";
             btnInfraSelectSpreadsheet.Size = new System.Drawing.Size(142, 28);
             btnInfraSelectSpreadsheet.TabIndex = 10;
@@ -658,7 +670,17 @@ namespace FileMoverApp
             progressBarInfra.Name = "progressBarInfra";
             progressBarInfra.Size = new System.Drawing.Size(993, 34);
             progressBarInfra.TabIndex = 7;
-            // 
+            progressBarInfra.Controls.Add(lblProgressInfoInfra);
+            //
+            // lblProgressInfoInfra
+            //
+            lblProgressInfoInfra.BackColor = System.Drawing.Color.Transparent;
+            lblProgressInfoInfra.Dock = System.Windows.Forms.DockStyle.Fill;
+            lblProgressInfoInfra.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            lblProgressInfoInfra.Name = "lblProgressInfoInfra";
+            lblProgressInfoInfra.Text = "";
+            lblProgressInfoInfra.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            //
             // btnInfraMoveFiles
             // 
             btnInfraMoveFiles.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
@@ -767,13 +789,13 @@ namespace FileMoverApp
             txtInfraDestinationFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtInfraDestinationFolder.Location = new System.Drawing.Point(80, 61);
             txtInfraDestinationFolder.Name = "txtInfraDestinationFolder";
-            txtInfraDestinationFolder.Size = new System.Drawing.Size(616, 23);
+            txtInfraDestinationFolder.Size = new System.Drawing.Size(574, 23);
             txtInfraDestinationFolder.TabIndex = 2;
             // 
             // btnInfraSelectDestination
             // 
             btnInfraSelectDestination.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnInfraSelectDestination.Location = new System.Drawing.Point(702, 57);
+            btnInfraSelectDestination.Location = new System.Drawing.Point(660, 57);
             btnInfraSelectDestination.Name = "btnInfraSelectDestination";
             btnInfraSelectDestination.Size = new System.Drawing.Size(142, 28);
             btnInfraSelectDestination.TabIndex = 1;
@@ -1126,6 +1148,7 @@ namespace FileMoverApp
         private System.Windows.Forms.Button btnLoadGrid;
         private System.Windows.Forms.Button btnMoveFiles;
         private System.Windows.Forms.ProgressBar progressBar;
+        private System.Windows.Forms.Label lblProgressInfo;
         private System.Windows.Forms.TextBox txtLimitPath;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
@@ -1199,6 +1222,7 @@ namespace FileMoverApp
         private System.Windows.Forms.Label labelInfraSub;
         private System.Windows.Forms.TextBox txtInfraSub;
         private System.Windows.Forms.ProgressBar progressBarInfra;
+        private System.Windows.Forms.Label lblProgressInfoInfra;
         private System.Windows.Forms.Button btnInfraMoveFiles;
         private System.Windows.Forms.Button btnInfraLoadGrid;
         private System.Windows.Forms.Button btnInfraExportGrid;
