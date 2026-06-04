@@ -18,6 +18,8 @@ namespace FileMoverApp
         {
             tabControlMain = new System.Windows.Forms.TabControl();
             tabPageDefault = new System.Windows.Forms.TabPage();
+            lblProcessInfo = new System.Windows.Forms.Label();
+            lblProgressInfo = new System.Windows.Forms.Label();
             btnExportExcel = new System.Windows.Forms.Button();
             btnExportGrid = new System.Windows.Forms.Button();
             groupBox1 = new System.Windows.Forms.GroupBox();
@@ -37,7 +39,6 @@ namespace FileMoverApp
             label2 = new System.Windows.Forms.Label();
             label1 = new System.Windows.Forms.Label();
             progressBar = new System.Windows.Forms.ProgressBar();
-            lblProgressInfo = new System.Windows.Forms.Label();
             btnMoveFiles = new System.Windows.Forms.Button();
             btnLoadGrid = new System.Windows.Forms.Button();
             dataGridView = new System.Windows.Forms.DataGridView();
@@ -50,6 +51,8 @@ namespace FileMoverApp
             btnSelectDestination = new System.Windows.Forms.Button();
             btnSelectSource = new System.Windows.Forms.Button();
             tabPageInfra = new System.Windows.Forms.TabPage();
+            lblProcessInfoInfra = new System.Windows.Forms.Label();
+            lblProgressInfoInfra = new System.Windows.Forms.Label();
             groupBoxInfra = new System.Windows.Forms.GroupBox();
             labelInfraSub = new System.Windows.Forms.Label();
             labelInfraLimitPath = new System.Windows.Forms.Label();
@@ -69,7 +72,6 @@ namespace FileMoverApp
             btnInfraSelectSpreadsheet = new System.Windows.Forms.Button();
             labelInfraDestino = new System.Windows.Forms.Label();
             progressBarInfra = new System.Windows.Forms.ProgressBar();
-            lblProgressInfoInfra = new System.Windows.Forms.Label();
             btnInfraMoveFiles = new System.Windows.Forms.Button();
             btnInfraLoadGrid = new System.Windows.Forms.Button();
             btnInfraExportGrid = new System.Windows.Forms.Button();
@@ -136,11 +138,13 @@ namespace FileMoverApp
             tabControlMain.Location = new System.Drawing.Point(0, 0);
             tabControlMain.Name = "tabControlMain";
             tabControlMain.SelectedIndex = 0;
-            tabControlMain.Size = new System.Drawing.Size(1371, 587);
+            tabControlMain.Size = new System.Drawing.Size(1537, 587);
             tabControlMain.TabIndex = 0;
             // 
             // tabPageDefault
             // 
+            tabPageDefault.Controls.Add(lblProcessInfo);
+            tabPageDefault.Controls.Add(lblProgressInfo);
             tabPageDefault.Controls.Add(btnExportExcel);
             tabPageDefault.Controls.Add(btnExportGrid);
             tabPageDefault.Controls.Add(groupBox1);
@@ -157,15 +161,39 @@ namespace FileMoverApp
             tabPageDefault.Location = new System.Drawing.Point(4, 24);
             tabPageDefault.Name = "tabPageDefault";
             tabPageDefault.Padding = new System.Windows.Forms.Padding(3);
-            tabPageDefault.Size = new System.Drawing.Size(1363, 559);
+            tabPageDefault.Size = new System.Drawing.Size(1529, 559);
             tabPageDefault.TabIndex = 0;
             tabPageDefault.Text = "Move files";
             tabPageDefault.UseVisualStyleBackColor = true;
             // 
+            // lblProcessInfo
+            // 
+            lblProcessInfo.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            lblProcessInfo.BackColor = System.Drawing.Color.Transparent;
+            lblProcessInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            lblProcessInfo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            lblProcessInfo.Location = new System.Drawing.Point(893, 518);
+            lblProcessInfo.Name = "lblProcessInfo";
+            lblProcessInfo.Size = new System.Drawing.Size(374, 34);
+            lblProcessInfo.TabIndex = 1;
+            lblProcessInfo.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // lblProgressInfo
+            // 
+            lblProgressInfo.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            lblProgressInfo.BackColor = System.Drawing.Color.Transparent;
+            lblProgressInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            lblProgressInfo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            lblProgressInfo.Location = new System.Drawing.Point(601, 518);
+            lblProgressInfo.Name = "lblProgressInfo";
+            lblProgressInfo.Size = new System.Drawing.Size(286, 34);
+            lblProgressInfo.TabIndex = 0;
+            lblProgressInfo.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // btnExportExcel
             // 
             btnExportExcel.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            btnExportExcel.Location = new System.Drawing.Point(1107, 519);
+            btnExportExcel.Location = new System.Drawing.Point(1273, 519);
             btnExportExcel.Name = "btnExportExcel";
             btnExportExcel.Size = new System.Drawing.Size(121, 32);
             btnExportExcel.TabIndex = 15;
@@ -176,7 +204,7 @@ namespace FileMoverApp
             // btnExportGrid
             // 
             btnExportGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            btnExportGrid.Location = new System.Drawing.Point(1234, 519);
+            btnExportGrid.Location = new System.Drawing.Point(1400, 519);
             btnExportGrid.Name = "btnExportGrid";
             btnExportGrid.Size = new System.Drawing.Size(121, 32);
             btnExportGrid.TabIndex = 14;
@@ -200,7 +228,7 @@ namespace FileMoverApp
             groupBox1.Controls.Add(radioAll);
             groupBox1.Controls.Add(radioPending);
             groupBox1.Controls.Add(chkUseThread);
-            groupBox1.Location = new System.Drawing.Point(813, 6);
+            groupBox1.Location = new System.Drawing.Point(979, 6);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new System.Drawing.Size(542, 90);
             groupBox1.TabIndex = 13;
@@ -346,25 +374,15 @@ namespace FileMoverApp
             // progressBar
             // 
             progressBar.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            progressBar.Location = new System.Drawing.Point(235, 519);
+            progressBar.Location = new System.Drawing.Point(235, 518);
             progressBar.Name = "progressBar";
-            progressBar.Size = new System.Drawing.Size(866, 34);
+            progressBar.Size = new System.Drawing.Size(360, 34);
             progressBar.TabIndex = 7;
-            progressBar.Controls.Add(lblProgressInfo);
-            //
-            // lblProgressInfo
-            //
-            lblProgressInfo.BackColor = System.Drawing.Color.Transparent;
-            lblProgressInfo.Dock = System.Windows.Forms.DockStyle.Fill;
-            lblProgressInfo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            lblProgressInfo.Name = "lblProgressInfo";
-            lblProgressInfo.Text = "";
-            lblProgressInfo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            //
+            // 
             // btnMoveFiles
             // 
             btnMoveFiles.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            btnMoveFiles.Location = new System.Drawing.Point(118, 519);
+            btnMoveFiles.Location = new System.Drawing.Point(118, 518);
             btnMoveFiles.Name = "btnMoveFiles";
             btnMoveFiles.Size = new System.Drawing.Size(111, 34);
             btnMoveFiles.TabIndex = 6;
@@ -375,7 +393,7 @@ namespace FileMoverApp
             // btnLoadGrid
             // 
             btnLoadGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            btnLoadGrid.Location = new System.Drawing.Point(8, 519);
+            btnLoadGrid.Location = new System.Drawing.Point(8, 518);
             btnLoadGrid.Name = "btnLoadGrid";
             btnLoadGrid.Size = new System.Drawing.Size(104, 34);
             btnLoadGrid.TabIndex = 5;
@@ -394,7 +412,7 @@ namespace FileMoverApp
             dataGridView.Location = new System.Drawing.Point(8, 102);
             dataGridView.Name = "dataGridView";
             dataGridView.RowHeadersWidth = 62;
-            dataGridView.Size = new System.Drawing.Size(1347, 411);
+            dataGridView.Size = new System.Drawing.Size(1513, 411);
             dataGridView.TabIndex = 4;
             // 
             // Ordem
@@ -430,7 +448,7 @@ namespace FileMoverApp
             txtDestinationFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtDestinationFolder.Location = new System.Drawing.Point(80, 61);
             txtDestinationFolder.Name = "txtDestinationFolder";
-            txtDestinationFolder.Size = new System.Drawing.Size(561, 23);
+            txtDestinationFolder.Size = new System.Drawing.Size(727, 23);
             txtDestinationFolder.TabIndex = 3;
             // 
             // txtSourceFolder
@@ -438,13 +456,13 @@ namespace FileMoverApp
             txtSourceFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtSourceFolder.Location = new System.Drawing.Point(80, 26);
             txtSourceFolder.Name = "txtSourceFolder";
-            txtSourceFolder.Size = new System.Drawing.Size(561, 23);
+            txtSourceFolder.Size = new System.Drawing.Size(727, 23);
             txtSourceFolder.TabIndex = 2;
             // 
             // btnSelectDestination
             // 
             btnSelectDestination.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnSelectDestination.Location = new System.Drawing.Point(647, 59);
+            btnSelectDestination.Location = new System.Drawing.Point(813, 59);
             btnSelectDestination.Name = "btnSelectDestination";
             btnSelectDestination.Size = new System.Drawing.Size(160, 28);
             btnSelectDestination.TabIndex = 1;
@@ -455,7 +473,7 @@ namespace FileMoverApp
             // btnSelectSource
             // 
             btnSelectSource.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnSelectSource.Location = new System.Drawing.Point(647, 25);
+            btnSelectSource.Location = new System.Drawing.Point(813, 25);
             btnSelectSource.Name = "btnSelectSource";
             btnSelectSource.Size = new System.Drawing.Size(160, 28);
             btnSelectSource.TabIndex = 0;
@@ -465,6 +483,8 @@ namespace FileMoverApp
             // 
             // tabPageInfra
             // 
+            tabPageInfra.Controls.Add(lblProcessInfoInfra);
+            tabPageInfra.Controls.Add(lblProgressInfoInfra);
             tabPageInfra.Controls.Add(groupBoxInfra);
             tabPageInfra.Controls.Add(labelInfraPlanilha);
             tabPageInfra.Controls.Add(txtInfraSpreadsheet);
@@ -480,10 +500,34 @@ namespace FileMoverApp
             tabPageInfra.Location = new System.Drawing.Point(4, 24);
             tabPageInfra.Name = "tabPageInfra";
             tabPageInfra.Padding = new System.Windows.Forms.Padding(3);
-            tabPageInfra.Size = new System.Drawing.Size(1363, 559);
+            tabPageInfra.Size = new System.Drawing.Size(1529, 559);
             tabPageInfra.TabIndex = 1;
             tabPageInfra.Text = "Rename";
             tabPageInfra.UseVisualStyleBackColor = true;
+            // 
+            // lblProcessInfoInfra
+            // 
+            lblProcessInfoInfra.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            lblProcessInfoInfra.BackColor = System.Drawing.Color.Transparent;
+            lblProcessInfoInfra.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            lblProcessInfoInfra.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            lblProcessInfoInfra.Location = new System.Drawing.Point(601, 518);
+            lblProcessInfoInfra.Name = "lblProcessInfoInfra";
+            lblProcessInfoInfra.Size = new System.Drawing.Size(286, 34);
+            lblProcessInfoInfra.TabIndex = 1;
+            lblProcessInfoInfra.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // lblProgressInfoInfra
+            // 
+            lblProgressInfoInfra.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            lblProgressInfoInfra.BackColor = System.Drawing.Color.Transparent;
+            lblProgressInfoInfra.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            lblProgressInfoInfra.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            lblProgressInfoInfra.Location = new System.Drawing.Point(893, 518);
+            lblProgressInfoInfra.Name = "lblProgressInfoInfra";
+            lblProgressInfoInfra.Size = new System.Drawing.Size(501, 34);
+            lblProgressInfoInfra.TabIndex = 0;
+            lblProgressInfoInfra.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // groupBoxInfra
             // 
@@ -501,7 +545,7 @@ namespace FileMoverApp
             groupBoxInfra.Controls.Add(radioInfraAll);
             groupBoxInfra.Controls.Add(radioInfraPending);
             groupBoxInfra.Controls.Add(chkInfraUseThread);
-            groupBoxInfra.Location = new System.Drawing.Point(808, 22);
+            groupBoxInfra.Location = new System.Drawing.Point(974, 22);
             groupBoxInfra.Name = "groupBoxInfra";
             groupBoxInfra.Size = new System.Drawing.Size(547, 90);
             groupBoxInfra.TabIndex = 13;
@@ -640,13 +684,13 @@ namespace FileMoverApp
             txtInfraSpreadsheet.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtInfraSpreadsheet.Location = new System.Drawing.Point(80, 26);
             txtInfraSpreadsheet.Name = "txtInfraSpreadsheet";
-            txtInfraSpreadsheet.Size = new System.Drawing.Size(574, 23);
+            txtInfraSpreadsheet.Size = new System.Drawing.Size(740, 23);
             txtInfraSpreadsheet.TabIndex = 11;
             // 
             // btnInfraSelectSpreadsheet
             // 
             btnInfraSelectSpreadsheet.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnInfraSelectSpreadsheet.Location = new System.Drawing.Point(660, 22);
+            btnInfraSelectSpreadsheet.Location = new System.Drawing.Point(826, 22);
             btnInfraSelectSpreadsheet.Name = "btnInfraSelectSpreadsheet";
             btnInfraSelectSpreadsheet.Size = new System.Drawing.Size(142, 28);
             btnInfraSelectSpreadsheet.TabIndex = 10;
@@ -666,21 +710,11 @@ namespace FileMoverApp
             // progressBarInfra
             // 
             progressBarInfra.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            progressBarInfra.Location = new System.Drawing.Point(235, 519);
+            progressBarInfra.Location = new System.Drawing.Point(235, 518);
             progressBarInfra.Name = "progressBarInfra";
-            progressBarInfra.Size = new System.Drawing.Size(993, 34);
+            progressBarInfra.Size = new System.Drawing.Size(360, 34);
             progressBarInfra.TabIndex = 7;
-            progressBarInfra.Controls.Add(lblProgressInfoInfra);
-            //
-            // lblProgressInfoInfra
-            //
-            lblProgressInfoInfra.BackColor = System.Drawing.Color.Transparent;
-            lblProgressInfoInfra.Dock = System.Windows.Forms.DockStyle.Fill;
-            lblProgressInfoInfra.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            lblProgressInfoInfra.Name = "lblProgressInfoInfra";
-            lblProgressInfoInfra.Text = "";
-            lblProgressInfoInfra.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            //
+            // 
             // btnInfraMoveFiles
             // 
             btnInfraMoveFiles.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
@@ -706,7 +740,7 @@ namespace FileMoverApp
             // btnInfraExportGrid
             // 
             btnInfraExportGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            btnInfraExportGrid.Location = new System.Drawing.Point(1234, 519);
+            btnInfraExportGrid.Location = new System.Drawing.Point(1400, 519);
             btnInfraExportGrid.Name = "btnInfraExportGrid";
             btnInfraExportGrid.Size = new System.Drawing.Size(121, 32);
             btnInfraExportGrid.TabIndex = 14;
@@ -725,7 +759,7 @@ namespace FileMoverApp
             dataGridViewInfra.Location = new System.Drawing.Point(8, 118);
             dataGridViewInfra.Name = "dataGridViewInfra";
             dataGridViewInfra.RowHeadersWidth = 62;
-            dataGridViewInfra.Size = new System.Drawing.Size(1347, 395);
+            dataGridViewInfra.Size = new System.Drawing.Size(1513, 395);
             dataGridViewInfra.TabIndex = 4;
             // 
             // OrdemInfra
@@ -789,13 +823,13 @@ namespace FileMoverApp
             txtInfraDestinationFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtInfraDestinationFolder.Location = new System.Drawing.Point(80, 61);
             txtInfraDestinationFolder.Name = "txtInfraDestinationFolder";
-            txtInfraDestinationFolder.Size = new System.Drawing.Size(574, 23);
+            txtInfraDestinationFolder.Size = new System.Drawing.Size(740, 23);
             txtInfraDestinationFolder.TabIndex = 2;
             // 
             // btnInfraSelectDestination
             // 
             btnInfraSelectDestination.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnInfraSelectDestination.Location = new System.Drawing.Point(660, 57);
+            btnInfraSelectDestination.Location = new System.Drawing.Point(826, 57);
             btnInfraSelectDestination.Name = "btnInfraSelectDestination";
             btnInfraSelectDestination.Size = new System.Drawing.Size(142, 28);
             btnInfraSelectDestination.TabIndex = 1;
@@ -822,7 +856,7 @@ namespace FileMoverApp
             tabPageEquipment.Location = new System.Drawing.Point(4, 24);
             tabPageEquipment.Name = "tabPageEquipment";
             tabPageEquipment.Padding = new System.Windows.Forms.Padding(3);
-            tabPageEquipment.Size = new System.Drawing.Size(1363, 559);
+            tabPageEquipment.Size = new System.Drawing.Size(1529, 559);
             tabPageEquipment.TabIndex = 2;
             tabPageEquipment.Text = "Criar pastas Equipamentos";
             tabPageEquipment.UseVisualStyleBackColor = true;
@@ -839,7 +873,7 @@ namespace FileMoverApp
             groupBoxEquipment.Controls.Add(radioEquipmentAll);
             groupBoxEquipment.Controls.Add(radioEquipmentPending);
             groupBoxEquipment.Controls.Add(chkEquipmentUseThread);
-            groupBoxEquipment.Location = new System.Drawing.Point(850, 22);
+            groupBoxEquipment.Location = new System.Drawing.Point(1016, 22);
             groupBoxEquipment.Name = "groupBoxEquipment";
             groupBoxEquipment.Size = new System.Drawing.Size(505, 90);
             groupBoxEquipment.TabIndex = 13;
@@ -946,13 +980,13 @@ namespace FileMoverApp
             txtEquipmentSpreadsheet.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtEquipmentSpreadsheet.Location = new System.Drawing.Point(80, 26);
             txtEquipmentSpreadsheet.Name = "txtEquipmentSpreadsheet";
-            txtEquipmentSpreadsheet.Size = new System.Drawing.Size(616, 23);
+            txtEquipmentSpreadsheet.Size = new System.Drawing.Size(782, 23);
             txtEquipmentSpreadsheet.TabIndex = 11;
             // 
             // btnEquipmentSelectSpreadsheet
             // 
             btnEquipmentSelectSpreadsheet.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnEquipmentSelectSpreadsheet.Location = new System.Drawing.Point(702, 25);
+            btnEquipmentSelectSpreadsheet.Location = new System.Drawing.Point(868, 25);
             btnEquipmentSelectSpreadsheet.Name = "btnEquipmentSelectSpreadsheet";
             btnEquipmentSelectSpreadsheet.Size = new System.Drawing.Size(142, 28);
             btnEquipmentSelectSpreadsheet.TabIndex = 10;
@@ -973,7 +1007,7 @@ namespace FileMoverApp
             // 
             labelEquipmentAno.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
             labelEquipmentAno.AutoSize = true;
-            labelEquipmentAno.Location = new System.Drawing.Point(555, 67);
+            labelEquipmentAno.Location = new System.Drawing.Point(721, 67);
             labelEquipmentAno.Name = "labelEquipmentAno";
             labelEquipmentAno.Size = new System.Drawing.Size(29, 15);
             labelEquipmentAno.TabIndex = 15;
@@ -982,7 +1016,7 @@ namespace FileMoverApp
             // txtEquipmentYear
             // 
             txtEquipmentYear.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            txtEquipmentYear.Location = new System.Drawing.Point(601, 64);
+            txtEquipmentYear.Location = new System.Drawing.Point(767, 64);
             txtEquipmentYear.Name = "txtEquipmentYear";
             txtEquipmentYear.Size = new System.Drawing.Size(80, 23);
             txtEquipmentYear.TabIndex = 16;
@@ -992,7 +1026,7 @@ namespace FileMoverApp
             progressBarEquipment.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             progressBarEquipment.Location = new System.Drawing.Point(235, 519);
             progressBarEquipment.Name = "progressBarEquipment";
-            progressBarEquipment.Size = new System.Drawing.Size(993, 34);
+            progressBarEquipment.Size = new System.Drawing.Size(1159, 34);
             progressBarEquipment.TabIndex = 7;
             // 
             // btnEquipmentCreateFolders
@@ -1020,7 +1054,7 @@ namespace FileMoverApp
             // btnEquipmentExportGrid
             // 
             btnEquipmentExportGrid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            btnEquipmentExportGrid.Location = new System.Drawing.Point(1234, 519);
+            btnEquipmentExportGrid.Location = new System.Drawing.Point(1400, 519);
             btnEquipmentExportGrid.Name = "btnEquipmentExportGrid";
             btnEquipmentExportGrid.Size = new System.Drawing.Size(121, 32);
             btnEquipmentExportGrid.TabIndex = 14;
@@ -1039,7 +1073,7 @@ namespace FileMoverApp
             dataGridViewEquipment.Location = new System.Drawing.Point(8, 118);
             dataGridViewEquipment.Name = "dataGridViewEquipment";
             dataGridViewEquipment.RowHeadersWidth = 62;
-            dataGridViewEquipment.Size = new System.Drawing.Size(1347, 395);
+            dataGridViewEquipment.Size = new System.Drawing.Size(1513, 395);
             dataGridViewEquipment.TabIndex = 4;
             // 
             // OrdemEquipment
@@ -1096,13 +1130,13 @@ namespace FileMoverApp
             txtEquipmentDestinationFolder.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             txtEquipmentDestinationFolder.Location = new System.Drawing.Point(80, 61);
             txtEquipmentDestinationFolder.Name = "txtEquipmentDestinationFolder";
-            txtEquipmentDestinationFolder.Size = new System.Drawing.Size(469, 23);
+            txtEquipmentDestinationFolder.Size = new System.Drawing.Size(635, 23);
             txtEquipmentDestinationFolder.TabIndex = 2;
             // 
             // btnEquipmentSelectDestination
             // 
             btnEquipmentSelectDestination.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            btnEquipmentSelectDestination.Location = new System.Drawing.Point(702, 61);
+            btnEquipmentSelectDestination.Location = new System.Drawing.Point(868, 61);
             btnEquipmentSelectDestination.Name = "btnEquipmentSelectDestination";
             btnEquipmentSelectDestination.Size = new System.Drawing.Size(142, 28);
             btnEquipmentSelectDestination.TabIndex = 1;
@@ -1112,7 +1146,7 @@ namespace FileMoverApp
             // 
             // Form1
             // 
-            ClientSize = new System.Drawing.Size(1371, 587);
+            ClientSize = new System.Drawing.Size(1537, 587);
             Controls.Add(tabControlMain);
             Name = "Form1";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -1149,6 +1183,7 @@ namespace FileMoverApp
         private System.Windows.Forms.Button btnMoveFiles;
         private System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.Label lblProgressInfo;
+        private System.Windows.Forms.Label lblProcessInfo;
         private System.Windows.Forms.TextBox txtLimitPath;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
@@ -1223,6 +1258,7 @@ namespace FileMoverApp
         private System.Windows.Forms.TextBox txtInfraSub;
         private System.Windows.Forms.ProgressBar progressBarInfra;
         private System.Windows.Forms.Label lblProgressInfoInfra;
+        private System.Windows.Forms.Label lblProcessInfoInfra;
         private System.Windows.Forms.Button btnInfraMoveFiles;
         private System.Windows.Forms.Button btnInfraLoadGrid;
         private System.Windows.Forms.Button btnInfraExportGrid;

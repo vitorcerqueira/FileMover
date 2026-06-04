@@ -382,12 +382,12 @@ namespace FileMoverApp
             SaveLastValues();
             if (chkUseThread.Checked)
             {
-                new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, txtSourceFolder.Text, requiredSpaceInMB, true, false)).Start();
+                new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, txtSourceFolder.Text, requiredSpaceInMB, true, false, SetDefaultGridLoadingState, lblProcessInfo)).Start();
             }
             else
             {
                 //new Thread(() => ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, txtSourceFolder.Text, requiredSpaceInMB, true, false)).Start();
-                ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, txtSourceFolder.Text, requiredSpaceInMB, true, false);
+                ProcessFiles(dataGridView, progressBar, txtDestinationFolder.Text, txtSourceFolder.Text, requiredSpaceInMB, true, false, SetDefaultGridLoadingState, lblProcessInfo);
             }
 
             // CopyFiles(dataGridView, progressBar, txtDestinationFolder.Text, requiredSpaceInMB, true));
@@ -448,12 +448,12 @@ namespace FileMoverApp
             SaveLastValues();
             if (chkInfraUseThread.Checked)
             {
-                new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true)).Start();
+                new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true, SetInfraGridLoadingState, lblProcessInfoInfra)).Start();
             }
             else
             {
                 //new Thread(() => ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true)).Start();
-                ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true);
+                ProcessFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, true, true, SetInfraGridLoadingState, lblProcessInfoInfra);
             }
 
             // CopyFiles(dataGridViewInfra, progressBarInfra, txtInfraDestinationFolder.Text, requiredInfraSpaceInMB, false)
@@ -1653,8 +1653,13 @@ namespace FileMoverApp
             }
         }
 
-        private void ProcessFiles(DataGridView grid, ProgressBar progress, string destinationRoot, string cleanupBoundaryRoot, double requiredSpaceMb, bool generateReport, bool moveInsteadOfCopy)
+        private void ProcessFiles(DataGridView grid, ProgressBar progress, string destinationRoot, string cleanupBoundaryRoot, double requiredSpaceMb, bool generateReport, bool moveInsteadOfCopy, Action<bool> setBusyState, Label processInfo)
         {
+            RunOnUiThread(() =>
+            {
+                setBusyState(true);
+                processInfo.Text = string.Empty;
+            });
             try
             {
                 DriveInfo drive = new DriveInfo(Path.GetPathRoot(destinationRoot));
@@ -1694,6 +1699,7 @@ namespace FileMoverApp
                     {
                         string sourceFile = row.Cells[1].Value?.ToString() ?? "";
                         string destFile = row.Cells[2].Value?.ToString() ?? "";
+                        Color? rowColor = null;
 
                         if (!string.IsNullOrWhiteSpace(sourceFile) &&
                             !string.IsNullOrWhiteSpace(destFile) &&
@@ -1746,6 +1752,12 @@ namespace FileMoverApp
                                 totals.PartialFailureCount++;
                             }
 
+                            rowColor =
+                                outcome.IsPartialFailure ? Color.Gold :
+                                outcome.IsFailure ? Color.Tomato :
+                                outcome.IsSkipped ? Color.Orange :
+                                Color.Green;
+
                             if (!string.IsNullOrWhiteSpace(outcome.CleanupFailureReason))
                             {
                                 totals.CleanupFailureCount++;
@@ -1766,8 +1778,19 @@ namespace FileMoverApp
                             }
                         }
 
+                        string processText = BuildProcessInfoText(false, totals);
+
                         //Invoke(new Action(() => AdvanceProgress(progress)));
-                        RunOnUiThread(() => AdvanceProgress(progress));
+                        RunOnUiThread(() =>
+                        {
+                            if (rowColor.HasValue)
+                            {
+                                row.DefaultCellStyle.BackColor = rowColor.Value;
+                            }
+
+                            processInfo.Text = processText;
+                            AdvanceProgress(progress);
+                        });
                     }
                 }
                 finally
@@ -1780,15 +1803,15 @@ namespace FileMoverApp
                     writer?.Close();
                 }
 
+                string finalProcessText = BuildProcessInfoText(true, totals);
+                RunOnUiThread(() => processInfo.Text = finalProcessText);
+
                 ShowAutoClosingOwnedMessage(
                     BuildCompletionMessage(moveInsteadOfCopy, reportPath, totals, copiedAny),
                     "Atenção",
                     MessageBoxIcon.Exclamation);
 
-                if (ShouldAutoOpenReport(reportPath, totals))
-                {
-                    OpenReportFile(reportPath);
-                }
+                OpenReportFile(reportPath);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -1802,6 +1825,34 @@ namespace FileMoverApp
             {
                 ShowOwnedMessage($"Erro inesperado: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            finally
+            {
+                RunOnUiThread(() => setBusyState(false));
+            }
+        }
+
+        private static string BuildProcessInfoText(bool finished, ProcessReportTotals totals)
+        {
+            string prefix = finished ? "Concluido" : "Processando";
+            StringBuilder builder = new StringBuilder();
+            builder.Append($"{prefix}  |  Alterados: {totals.ChangedFilesCount}");
+
+            if (totals.SkippedFilesCount > 0)
+            {
+                builder.Append($"  |  Ignorados: {totals.SkippedFilesCount}");
+            }
+
+            if (totals.FailedFilesCount > 0)
+            {
+                builder.Append($"  |  Falhas: {totals.FailedFilesCount}");
+            }
+
+            if (totals.PartialFailureCount > 0)
+            {
+                builder.Append($"  |  Parciais: {totals.PartialFailureCount}");
+            }
+
+            return builder.ToString();
         }
 
         private static string BuildReportPath(bool moveInsteadOfCopy)
@@ -1930,13 +1981,6 @@ namespace FileMoverApp
             {
                 ShowOwnedMessage($"Nao foi possivel abrir o log: {ex.Message}", "Atencao", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private bool ShouldAutoOpenReport(string reportPath, ProcessReportTotals totals)
-        {
-            return !string.IsNullOrWhiteSpace(reportPath) &&
-                   File.Exists(reportPath) &&
-                   (totals.SkippedFilesCount > 0 || totals.FailedFilesCount > totals.PartialFailureCount || totals.PartialFailureCount > 0 || totals.CleanupFailureCount > 0);
         }
 
         private void btnExportGrid_Click(object sender, EventArgs e)
